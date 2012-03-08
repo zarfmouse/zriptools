@@ -29,8 +29,7 @@ class Help {
 	throw new InvalidArgumentException("$key => $val");
       }
     }
-
-
+    return $arguments;
   }
 
   final public function addArgument($argument, $required = true, $description = null, $validator = null) {
