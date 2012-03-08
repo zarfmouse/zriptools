@@ -24,10 +24,9 @@ class Help {
 	      in_array($key, $this->optionalArguments))) {
 	throw new UnknownArgumentException($key);
       }
-      foreach($this->argumentValidators as $validator) {
-	if(!call_user_func($validator, $val)) {
-	  throw new InvalidArgumentException($val);
-	}
+      $validator = $this->argumentValidators[$key];
+      if(isset($validator) && !call_user_func($validator, $val)) {
+	throw new InvalidArgumentException("$key => $val");
       }
     }
 
