@@ -18,8 +18,12 @@ class Example extends Task {
 
   public function run() {
     for($i=0;$i<=100;$i++) {
-      $this->setProgress($i);
+      $this->setProgress($i, 'Pass #1');
       usleep(100000);
+    }
+    for($i=0;$i<=100;$i++) {
+      $this->setProgress($i, 'Pass #2');
+      usleep(50000);
     }
   }
 

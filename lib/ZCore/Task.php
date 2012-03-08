@@ -10,9 +10,9 @@ abstract class Task {
     $this->listeners = array();
   }
 
-  final protected function setProgress($percent) {
+  final protected function setProgress($percent, $status=null) {
     foreach($this->listeners as $listener) {
-      call_user_func($listener, $percent);
+      call_user_func($listener, $percent, $status);
     }
   }
 
@@ -24,6 +24,10 @@ abstract class Task {
   final public function setArguments($arguments) {
     $this->arguments = $this->help()->validate($arguments);
     return $this;
+  }
+
+  final public function getArgument($key) {
+    return $this->arguments[$key];
   }
 
   /**
