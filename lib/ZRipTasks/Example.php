@@ -4,7 +4,7 @@ namespace ZRipTasks;
 use ZCore\Task;
 use ZCore\Help;
 
-class Foo extends Task {
+class Example extends Task {
   public function help() {
     $help = new Help;
     $help->addArgument('device', 
@@ -17,11 +17,10 @@ class Foo extends Task {
   }
 
   public function run() {
-    $this->setProgress(0);
-    sleep(1);
-    $this->setProgress(50);
-    sleep(2);
-    $this->setProgress(100);
+    for($i=0;$i<=100;$i++) {
+      $this->setProgress($i);
+      usleep(100000);
+    }
   }
 
   public function report() {

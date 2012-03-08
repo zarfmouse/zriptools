@@ -23,8 +23,18 @@ while(count($_SERVER['argv']) > 0 && (count($_SERVER['argv'])%2 == 0)) {
 $task = 'ZRipTasks\\'.$task;
 $task = new $task();
 $task->setArguments($arguments);
-$task->registerProgressListener(function($p) { print "$p\n"; });
+$task->registerProgressListener(function($p) { 
+    print "Progress ";
+    $complete = round(60 * ($p/100));
+    $remaining = 60 - $complete;
+    print str_repeat('=', $complete);
+    print ">";
+    print str_repeat(' ', $remaining);
+    print sprintf(" %3s%%", $p);
+    print "\r";
+  });
 $task->run();
+print "\n";
 var_dump($task->report());
 
 
