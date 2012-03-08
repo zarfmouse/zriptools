@@ -1,0 +1,30 @@
+#!/usr/bin/php
+<?php
+
+require_once __DIR__."/../lib/autoload-init.php";
+
+// Parse command line arguments into a $task and the $arguments array.
+$arguments = array();
+$script = array_shift($_SERVER['argv']);
+$task = array_shift($_SERVER['argv']);
+if(is_null($task) || !preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $task)) {
+  print "Invalid command.\n";
+  exit;
+}
+while(count($_SERVER['argv']) > 0 && (count($_SERVER['argv'])%2 == 0)) {
+  $key = array_shift($_SERVER['argv']);
+  $val = array_shift($_SERVER['argv']);
+  $key = preg_replace('/^\-+/', '', $key);
+  // TODO: Support multi-valued arguments. ZCore\Help doesn't support
+  // them yet either.
+  $arguments[$key] = $val;
+}
+
+$task = 'ZRipTasks\\'.$task;
+$task = new $task();
+$task->setArguments($arguments);
+$task->registerProgressListener(function($p) { print "$p\n"; });
+$task->run();
+var_dump($task->report());
+
+
