@@ -1,3 +1,2 @@
-$ bin/run-task Example --device /dev/scd0
-$ bin/run-task RipAudio --device /dev/scd0 --pcm /tmp/pcm --toc /tmp/toc
+$ bin/rip --device /dev/scd0 --pcm /tmp/pcm --toc /tmp/toc
 

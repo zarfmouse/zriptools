@@ -2,57 +2,50 @@
 
 namespace ZRipTasks;
 use ZCore\Task;
-use ZCore\Help;
+use Exception;
 
 class RipAudio extends Task {
-  public function help() {
-    $help = new Help;
-    $help->addArgument('device', 
-		       true, 
-		       'Device path (e.g. /dev/scd0)', 
-		       function($dev) {
-			 return 
-			   (
-			    preg_match('(^/dev/.*)', $dev) 
-			    &&
-			    file_exists($dev)
-			    ) ? true : false;
-		       });
-    $help->addArgument('pcm', 
-		       true, 
-		       'PCM output path',
-		       function($path) {
-			 return 
-			   (
-			    is_dir(dirname($path)) &&
-			    !file_exists($path) &&
-			    !file_exists("$path.2")
-			    );
-		       });
-    $help->addArgument('toc', 
-		       true, 
-		       'TOC output path',
-		       function($path) {
-			 return 
-			   (
-			    is_dir(dirname($path)) &&
-			    !file_exists($path)
-			    );
-		       });
-    $help->addArgument('log', 
-		       false, 
-		       'cdrdao log path',
-		       function($path) {
-			 return 
-			   (
-			    is_dir(dirname($path)) &&
-			    !file_exists($path)
-			    );
-		       });
-    return $help;
+  private $dev;
+  private $pcm;
+  private $toc;
+  private $log;
+  
+  private static function tmp($path) {
+    return "$path.tmp";
   }
 
-  private function rip($dev, $pcm, $toc, $log, $paranoia, $pass) {
+  private static function time_to_frames($time) {
+    list($m, $s, $f) = explode(':', $time);
+    return ($m*60*75) + ($s*75) + $f;
+  }
+
+  public function __construct($dev, $pcm, $toc, $log=null) {
+    parent::__construct();
+    if(is_null($dev) || 
+       ! (preg_match('(^/dev/.*)', $dev) && file_exists($dev))) 
+      throw new InvalidDeviceException($dev);
+    foreach(array($pcm, $toc, $log) as $path) {
+      if(isset($path)) {
+	if(! (is_dir(dirname($path)) && is_writable(dirname($path))))
+	  throw new UnwritablePathException($path);
+	if(file_exists($path))
+	  throw new FileExistsException($path);
+	if(file_exists(self::tmp($path)))
+	  throw new FileExistsException(self::tmp($path));
+      }
+    }
+    if(is_null($pcm) || is_null($toc)) {
+      throw new InvalidArgumentsException();
+    }
+    $this->dev = $dev;
+    $this->pcm = $pcm;
+    $this->toc = $toc;
+    $this->log = $log;
+    $this->success = false;
+  }
+  
+  private function rip($pcm, $toc, $log, $paranoia, $pass) {
+    $dev = $this->dev;
     $wallclock_start = microtime(true);
     $handle = popen("/usr/bin/cdrdao read-cd --paranoia-mode $paranoia --device $dev --datafile $pcm $toc 2>&1", 'r');
     $buffer = '';
@@ -97,11 +90,11 @@ class RipAudio extends Task {
   }
 
   public function cleanup() {
-    $dev = $this->getArgument('device');
-    $pcm = $this->getArgument('pcm');
-    $toc = $this->getArgument('toc');
-    $log = $this->getArgument('log');
-    
+    $dev = $this->dev;
+    $pcm = $this->pcm;
+    $toc = $this->toc;
+    $log = $this->log;
+
     if((!$this->success) || (!file_exists($pcm)) || (!file_exists($toc))) {
       if(file_exists($pcm))
 	unlink($pcm);
@@ -117,48 +110,31 @@ class RipAudio extends Task {
   }
 
   public function run() {
-    $dev = $this->getArgument('device');
-    $pcm = $this->getArgument('pcm');
-    $toc = $this->getArgument('toc');
-    $log = $this->getArgument('log');
+    $dev = $this->dev;
+    $pcm = $this->pcm;
+    $toc = $this->toc;
+    $log = $this->log;
 
-    $this->success = false;
     register_shutdown_function(array($this, 'cleanup'));
     
-    $this->rip($dev, $pcm, $toc, $log, 0, 1);
+    $this->rip($pcm, $toc, $log, 0, 1);
     $md51 = md5_file($pcm);
-    $this->rip($dev, "$pcm.2", "$toc.2", null, 0, 2);
+    $this->rip("$pcm.2", "$toc.2", null, 0, 2);
     $md52 = md5_file("$pcm.2");
     
     if($md51 != $md52) {
       $size = filesize($pcm);
       $diff_bytes = intval(shell_exec("/usr/bin/cmp -b -l $pcm $pcm.2 | wc -l"));
       $error = sprintf("% 2.4f", ($diff_bytes / $size) * 100);
-      $this->rip($dev, $pcm, $toc, $log, 3, "3 ($error% err)");
+      $this->rip($pcm, $toc, $log, 3, 3);
     } 
     $this->success = true;
   }
 
-  private static function time_to_frames($time) {
-    list($m, $s, $f) = explode(':', $time);
-    return ($m*60*75) + ($s*75) + $f;
-  }
-
-  public function report() {
-    $dev = $this->getArgument('device');
-    $pcm = $this->getArgument('pcm');
-    $toc = $this->getArgument('toc');
-    if(file_exists($pcm) && file_exists($toc)) {
-      return array(
-		   'status' => 'success',
-		   'dev' => $dev,
-		   'pcm' => $pcm,
-		   'toc' => $toc,
-		   'pcm_size' => filesize($pcm),
-		   'pcm_md5' => md5_file($pcm),
-		   );
-    } else {
-      return array('status' => 'failed');
-    }
-  }
 }
+  
+class RipAudioException extends Exception {};
+class InvalidDeviceException extends RipAudioException {};
+class UnwritablePathException extends RipAudioException {};
+class FileExistsException extends RipAudioException {};
+class InvalidArgumentsException extends RipAudioException {};
