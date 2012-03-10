@@ -39,14 +39,28 @@ class RipAudio extends Task {
 			    !file_exists($path)
 			    );
 		       });
+    $help->addArgument('log', 
+		       false, 
+		       'cdrdao log path',
+		       function($path) {
+			 return 
+			   (
+			    is_dir(dirname($path)) &&
+			    !file_exists($path)
+			    );
+		       });
     return $help;
   }
 
-  private function rip($dev, $pcm, $toc, $paranoia, $pass) {
+  private function rip($dev, $pcm, $toc, $log, $paranoia, $pass) {
     $wallclock_start = microtime(true);
     $handle = popen("/usr/bin/cdrdao read-cd --paranoia-mode $paranoia --device $dev --datafile $pcm $toc 2>&1", 'r');
     $buffer = '';
+    $log_data = '';
     while(($char = fgetc($handle)) !== FALSE) {
+      if(isset($log)) {
+	$log_data .= $char;
+      }
       if($char == "\r" || $char == "\n") {
 	if(preg_match('/Copying audio tracks ([0-9]+)-([0-9]+): start ([0-9]+:[0-9]+:[0-9]+), length ([0-9]+:[0-9]+:[0-9]+)/', $buffer, $matches)) {
 	  $first_track = $matches[1];
@@ -72,6 +86,13 @@ class RipAudio extends Task {
 	$buffer .= $char;
       }
     }
+    $status = pclose($handle);
+    if($status != 0) {
+      exit;
+    }
+    if(isset($log) and !empty($log_data)) {
+      file_put_contents($log, $log_data);
+    }
     $this->setProgress(100, "Pass #$pass {$rate}x 00m00s");
   }
 
@@ -79,14 +100,16 @@ class RipAudio extends Task {
     $dev = $this->getArgument('device');
     $pcm = $this->getArgument('pcm');
     $toc = $this->getArgument('toc');
+    $log = $this->getArgument('log');
     $success = false;
-    register_shutdown_function(function($dev, $pcm, $toc, &$success) {
-	system("/usr/bin/eject $dev");
+    register_shutdown_function(function($dev, $pcm, $toc, $log, &$success) {
 	if((!$success) || (!file_exists($pcm)) || (!file_exists($toc))) {
 	  if(file_exists($pcm))
 	    unlink($pcm);
 	  if(file_exists($toc))
 	     unlink($toc);
+	  if(file_exists($log))
+	     unlink($log);
 	}
 	if(file_exists("$pcm.2"))
 	  unlink("$pcm.2");
@@ -94,16 +117,16 @@ class RipAudio extends Task {
 	  unlink("$toc.2");
       }, $dev, $pcm, $toc, &$success);
     
-    $this->rip($dev, $pcm, $toc, 0, 1);
+    $this->rip($dev, $pcm, $toc, $log, 0, 1);
     $md51 = md5_file($pcm);
-    $this->rip($dev, "$pcm.2", "$toc.2", 0, 2);
+    $this->rip($dev, "$pcm.2", "$toc.2", null, 0, 2);
     $md52 = md5_file("$pcm.2");
     
     if($md51 != $md52) {
       $size = filesize($pcm);
       $diff_bytes = intval(shell_exec("/usr/bin/cmp -b -l $pcm $pcm.2 | wc -l"));
       $error = sprintf("% 2.4f", ($diff_bytes / $size) * 100);
-      $this->rip($dev, "$pcm", "$toc", 3, "3 ($error% err)");
+      $this->rip($dev, $pcm, $toc, $log, 3, "3 ($error% err)");
     } 
     $success = true;
   }
