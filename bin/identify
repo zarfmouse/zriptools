@@ -1,0 +1,11 @@
+#!/usr/bin/php
+<?php
+
+require_once __DIR__."/../lib/autoload-init.php";
+
+$arguments = ZCore\Arguments::parse();
+$discid = new ZRipTasks\DiscId($arguments['device']);
+print $discid->cddbid()."\n";
+print $discid->mbid()."\n";
+print $discid->mb_submit_url()."\n";
+print $discid->mb_ws_url()."\n";
