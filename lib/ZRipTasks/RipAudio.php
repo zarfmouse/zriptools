@@ -96,26 +96,34 @@ class RipAudio extends Task {
     $this->setProgress(100, "Pass #$pass {$rate}x 00m00s");
   }
 
+  public function cleanup() {
+    $dev = $this->getArgument('device');
+    $pcm = $this->getArgument('pcm');
+    $toc = $this->getArgument('toc');
+    $log = $this->getArgument('log');
+    
+    if((!$this->success) || (!file_exists($pcm)) || (!file_exists($toc))) {
+      if(file_exists($pcm))
+	unlink($pcm);
+      if(file_exists($toc))
+	unlink($toc);
+      if(file_exists($log))
+	unlink($log);
+    }
+    if(file_exists("$pcm.2"))
+      unlink("$pcm.2");
+    if(file_exists("$toc.2"))
+      unlink("$toc.2");
+  }
+
   public function run() {
     $dev = $this->getArgument('device');
     $pcm = $this->getArgument('pcm');
     $toc = $this->getArgument('toc');
     $log = $this->getArgument('log');
-    $success = false;
-    register_shutdown_function(function($dev, $pcm, $toc, $log, &$success) {
-	if((!$success) || (!file_exists($pcm)) || (!file_exists($toc))) {
-	  if(file_exists($pcm))
-	    unlink($pcm);
-	  if(file_exists($toc))
-	     unlink($toc);
-	  if(file_exists($log))
-	     unlink($log);
-	}
-	if(file_exists("$pcm.2"))
-	  unlink("$pcm.2");
-	if(file_exists("$toc.2"))
-	  unlink("$toc.2");
-      }, $dev, $pcm, $toc, &$success);
+
+    $this->success = false;
+    register_shutdown_function(array($this, 'cleanup'));
     
     $this->rip($dev, $pcm, $toc, $log, 0, 1);
     $md51 = md5_file($pcm);
@@ -128,7 +136,7 @@ class RipAudio extends Task {
       $error = sprintf("% 2.4f", ($diff_bytes / $size) * 100);
       $this->rip($dev, $pcm, $toc, $log, 3, "3 ($error% err)");
     } 
-    $success = true;
+    $this->success = true;
   }
 
   private static function time_to_frames($time) {
