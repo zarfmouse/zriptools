@@ -25,7 +25,6 @@ class DiscId {
 	$lines[trim($keyval[0])] = trim($keyval[1]);
       }
     }
-    var_dump($lines);
     $this->freedb = $lines['FreeDB DiscID'];
     $this->musicbrainz = $lines['DiscID'];
     $this->musicbrainz_submit = $lines['Submit via'];
