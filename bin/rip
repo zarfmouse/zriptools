@@ -9,17 +9,7 @@ pcntl_signal(SIGTERM, function() {exit;});
 
 require_once __DIR__."/../lib/autoload-init.php";
 
-// Parse command line arguments into a $task and the $arguments array.
-$arguments = array();
-$script = array_shift($_SERVER['argv']);
-while(count($_SERVER['argv']) > 0 && (count($_SERVER['argv'])%2 == 0)) {
-  $key = array_shift($_SERVER['argv']);
-  $val = array_shift($_SERVER['argv']);
-  $key = preg_replace('/^\-+/', '', $key);
-  // TODO: Support multi-valued arguments. ZCore\Help doesn't support
-  // them yet either.
-  $arguments[$key] = $val;
-}
+$arguments = ZCore\Arguments::parse();
 
 use ZRipTasks\RipAudio;
 $task = new RipAudio($arguments['device'], $arguments['pcm'], $arguments['toc'], $arguments['log']);
