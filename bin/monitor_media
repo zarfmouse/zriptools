@@ -1,0 +1,33 @@
+#!/usr/bin/php
+<?php
+
+require_once __DIR__."/../lib/autoload-init.php";
+use ZRipTasks\MediaMonitor;
+
+$monitor = new MediaMonitor;
+$monitor->registerAudioCDAction(function($device) {
+    $dev = $device->getDeviceFile();
+    print "$dev - Audio CD.\n";
+  });
+$monitor->registerMultiModeCDAction(function($device) {
+    $dev = $device->getDeviceFile();
+    print "$dev - MultiMode CD.\n";
+  });
+$monitor->registerDataCDAction(function($device) {
+    $dev = $device->getDeviceFile();
+    print "$dev - Data CD.\n";
+  });
+$monitor->registerVideoDVDAction(function($device) {
+    $dev = $device->getDeviceFile();
+    print "$dev - Video DVD.\n";
+  });
+$monitor->registerDataDVDAction(function($device) {
+    $dev = $device->getDeviceFile();
+    print "$dev - Data DVD.\n";
+  });
+$monitor->registerEjectAction(function($device) {
+    $dev = $device->getDeviceFile();
+    print "$dev - Ejected.\n";
+  });
+$monitor->run();
+

@@ -1,2 +1,4 @@
-$ bin/rip --device /dev/scd0 --pcm /tmp/pcm --toc /tmp/toc
+$ cd misc; gcc -ldiscid -o discid discid.c
+$ bin/rip --device /dev/scd0 --pcm /tmp/pcm --toc /tmp/toc --log /tmp/log
+$ bin/identify --device /dev/scd0
 
