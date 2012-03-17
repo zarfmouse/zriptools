@@ -1,4 +1,20 @@
-$ cd misc; gcc -ldiscid -o discid discid.c
+You need to install php-dbus using the instructions in
+misc/HOWTO.BuildPhpDbus
+
+You need to open DBus security up using the instructions in
+misc/HOWTO.ConfigureDbusSecurity
+
+You need to build the misc/discid binary using the instruction in 
+misc/HOWTO.BuildDiscId
+
+Here are some commands you can run: 
+
+To rip a single disc manually. 
 $ bin/rip --device /dev/scd0 --pcm /tmp/pcm --toc /tmp/toc --log /tmp/log
+
+To output some disc identification data for a disc manually.
 $ bin/identify --device /dev/scd0
 
+To monitor all the optical drives for disc insertion and start ripping
+automatically.
+$ bin/monitor_media

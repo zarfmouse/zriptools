@@ -1,0 +1,12 @@
+Download dbus-0.1.1.tgz from http://pecl.php.net/package/DBus
+
+$ tar xvzf dbus-0.1.1.tgz
+$ cd dbus-0.1.1
+$ patch < dbus-error-reporting.patch
+$ cd ..
+$ tar cvzf dbus-0.1.1.tgz dbus-0.1.1 package.xml
+$ dh-make-pecl dbus-0.1.1.tgz
+$ cd php-dbus-0.1.1
+$ dpkg-buildpackage -rfakeroot
+$ cd ..
+$ dpkg --install php5-dbus_0.1.1.1-1_amd64.deb

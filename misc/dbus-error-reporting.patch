@@ -1,0 +1,15 @@
+Index: dbus.c
+===================================================================
+--- dbus.c	(revision 324072)
++++ dbus.c	(working copy)
+@@ -1332,7 +1332,9 @@
+ 
+ 	/* request our name on the bus and check for errors */
+ 	ret = dbus_bus_request_name(dbus->con, name, DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
+-	if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != ret) { 
++	if(ret == -1) {
++		php_error_docref(NULL TSRMLS_CC, E_WARNING, "request_name: %s", err.message);
++	} else if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != ret) { 
+ 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Not Primary Owner (%d)\n", ret);
+ 	}
+ 	dbus_set_error_handling(EH_NORMAL, NULL TSRMLS_CC);

@@ -1,0 +1,3 @@
+# apt-get install libdiscid0-dev libdiscid0
+$ gcc -ldiscid -o discid discid.c
+
