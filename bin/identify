@@ -9,3 +9,4 @@ print $discid->cddbid()."\n";
 print $discid->mbid()."\n";
 print $discid->mb_submit_url()."\n";
 print $discid->mb_ws_url()."\n";
+print $discid->dir()."\n";

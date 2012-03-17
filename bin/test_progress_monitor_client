@@ -1,0 +1,12 @@
+#!/usr/bin/php
+<?php
+
+require_once __DIR__."/../lib/autoload-init.php";
+
+use \ZCore\ProgressMonitor\Client;
+
+Client::run(function($monitors) {
+    print json_encode($monitors)."\n";
+    return true;
+  });
+

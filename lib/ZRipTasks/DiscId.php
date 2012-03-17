@@ -13,7 +13,7 @@ class DiscId {
   public function __construct($dev) {
     if(is_null($dev) || 
        ! (preg_match('(^/dev/.*)', $dev) && file_exists($dev))) 
-      throw new InvalidDeviceException($dev);
+      throw new InvalidDeviceException("$dev");
     $this->dev = $dev;
 
     $command = __DIR__.'/../../misc/discid';
@@ -43,8 +43,8 @@ class DiscId {
   public function mb_ws_url() {
     return $this->musicbrainz_ws;
   }
-
+  public function dir() {
+    return implode('/',str_split($this->freedb)).'/'.$this->freedb;
+  }
 }
   
-class DiscIdException extends Exception {};
-class InvalidDeviceException extends DiscIdException {};

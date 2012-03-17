@@ -1,0 +1,7 @@
+#!/usr/bin/php
+<?php
+
+$memcached = new Memcached();	
+$memcached->addServer('localhost', 11211);	
+$memcached->flush();
+

@@ -3,11 +3,37 @@
 
 require_once __DIR__."/../lib/autoload-init.php";
 use ZRipTasks\MediaMonitor;
+use ZRipTasks\DiscId;
+use ZRipTasks\RipAudio;
+use ZCore\ProgressMonitor;
+
+define('LIBRARY_ROOT', '/home/zach/CDLibrary');
 
 $monitor = new MediaMonitor;
 $monitor->registerAudioCDAction(function($device) {
     $dev = $device->getDeviceFile();
-    print "$dev - Audio CD.\n";
+    $discid = new DiscId($dev);
+    $cddbid = $discid->cddbid();
+    $path = LIBRARY_ROOT . '/' . $discid->dir();
+    if(!file_exists($path)) {
+      mkdir($path, 0755, true);
+    }
+    print "Ripping $dev to $path.\n";
+    $task = new RipAudio($dev, "$path/$cddbid.pcm", "$path/$cddbid.toc", "$path/$cddbid.cdrdao-log.txt");
+    $pid = pcntl_fork();
+    if($pid == -1) {
+      die('could not fork');
+    } else if($pid) {
+      // parent.
+    } else {
+      // child
+      ProgressMonitor::init($dev);
+      $task->registerProgressListener(function($p, $s) use ($dev) { 
+	  ProgressMonitor::update($dev, $p, $s);
+	});
+      $task->run();    
+      exit;
+    }
   });
 $monitor->registerMultiModeCDAction(function($device) {
     $dev = $device->getDeviceFile();
@@ -28,6 +54,7 @@ $monitor->registerDataDVDAction(function($device) {
 $monitor->registerEjectAction(function($device) {
     $dev = $device->getDeviceFile();
     print "$dev - Ejected.\n";
+    pcntl_waitpid(0, &$status, WNOHANG);
   });
 $monitor->run();
 

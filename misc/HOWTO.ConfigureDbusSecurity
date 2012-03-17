@@ -1,0 +1,12 @@
+In order to open up a security policy hole for the dbus service
+provided by this package you need to copy the included configuration
+file into dbus's configuration and then send a HUP to the system dbus
+daemon.
+
+# cp us.zarfmouse.ZRipTools.conf /etc/dbus-1/system.d
+# ps auxww | grep dbus-daemon | grep system
+104       1266  0.0  0.0  24812  2348 ?        Ss   23:11   0:00 /usr/bin/dbus-daemon --system
+# kill -1 1266
+
+Where 1266 is replaced by whatever the actual PID of the system dbus daemon is.
+
