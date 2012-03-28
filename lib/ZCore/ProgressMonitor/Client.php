@@ -17,20 +17,18 @@ class Client {
     $memcached = new Memcached();
     $memcached->addServer('localhost', 11211);
     $flag = true;
-    do
-      {
-	$s = $d->waitLoop( 10000 );
-	if($s instanceof DbusSignal &&
-	   $s->matches('us.zarfmouse.ZRipTools.ProgressMonitor', 
-		       'ProgressSignal')) {
-	  $monitors = array();
-	  foreach($memcached->get(ProgressMonitor::ID_FIELD) as $id) {
-	    $val = $memcached->get($id);
-	    $monitors[$id] = $val;
-	  }
-	  $flag = call_user_func($callback, $monitors);
+    do {
+      $s = $d->waitLoop( 10000 );
+      if($s instanceof DbusSignal &&
+	 $s->matches('us.zarfmouse.ZRipTools.ProgressMonitor', 
+		     'ProgressSignal')) {
+	$monitors = array();
+	foreach(array_keys($memcached->get(ProgressMonitor::ID_FIELD)) as $id) {
+	  $val = $memcached->get($id);
+	  $monitors[$id] = $val;
 	}
+	$flag = call_user_func($callback, $monitors);
       }
-    while ( $flag );
+    } while ($flag);
   }
 }

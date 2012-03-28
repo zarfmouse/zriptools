@@ -29,10 +29,10 @@ class ProgressMonitor {
     do {
       $ids = self::$memcached->get(self::ID_FIELD, null, $cas);
       if (self::$memcached->getResultCode() == Memcached::RES_NOTFOUND) {
-        $ids = array($id);
+        $ids = array($id => 1);
 	self::$memcached->add(self::ID_FIELD, $ids);
       } else { 
-        $ids[] = $id;
+        $ids[$id] = 1;
 	self::$memcached->cas($cas, self::ID_FIELD, $ids);
       }   
     } while (self::$memcached->getResultCode() != Memcached::RES_SUCCESS);
