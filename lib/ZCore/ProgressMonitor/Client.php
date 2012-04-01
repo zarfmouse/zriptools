@@ -10,15 +10,11 @@ class Client {
   static public function run($callback) {
     $d = new Dbus(Dbus::BUS_SYSTEM);
     $d->addWatch('us.zarfmouse.ZRipTools.ProgressMonitor', 'ProgressSignal');
-    $n = $d->createProxy("us.zarfmouse.ZRipTools.ProgressMonitor",
-			 "/us/zarfmouse/zriptools", 
-			 "us.zarfmouse.ZRipTools.ProgressMonitor"
-			 );
     $memcached = new Memcached();
     $memcached->addServer('localhost', 11211);
     $flag = true;
     do {
-      $s = $d->waitLoop( 10000 );
+      $s = $d->waitLoop( 2000 );
       if($s instanceof DbusSignal &&
 	 $s->matches('us.zarfmouse.ZRipTools.ProgressMonitor', 
 		     'ProgressSignal')) {
