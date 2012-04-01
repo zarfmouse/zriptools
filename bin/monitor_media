@@ -13,6 +13,7 @@ $monitor = new MediaMonitor;
 $monitor->registerAudioCDAction(function($device) {
     $dev = $device->getDeviceFile();
     ProgressMonitor::init($dev);
+    ProgressMonitor::update($dev, 100, 'Initializing.');
     try {
       $discid = new DiscId($dev);
       $cddbid = $discid->cddbid();
@@ -33,29 +34,34 @@ $monitor->registerAudioCDAction(function($device) {
 	    ProgressMonitor::update($dev, $p, $s);
 	  });
 	$task->run();    
+	system("eject $dev");
 	exit;
       }
     } catch (Exception $e) {
       print "Ripping from $dev failed.\n";
       // TODO: Handle specific failure cases more gracefully.
+      system("eject $dev");
     }
-    system("eject $dev");
   });
 $monitor->registerMultiModeCDAction(function($device) {
     $dev = $device->getDeviceFile();
     print "$dev - MultiMode CD.\n";
+    system("eject $dev");
   });
 $monitor->registerDataCDAction(function($device) {
     $dev = $device->getDeviceFile();
     print "$dev - Data CD.\n";
+    system("eject $dev");
   });
 $monitor->registerVideoDVDAction(function($device) {
     $dev = $device->getDeviceFile();
     print "$dev - Video DVD.\n";
+    system("eject $dev");
   });
 $monitor->registerDataDVDAction(function($device) {
     $dev = $device->getDeviceFile();
     print "$dev - Data DVD.\n";
+    system("eject $dev");
   });
 $monitor->registerEjectAction(function($device) {
     $dev = $device->getDeviceFile();

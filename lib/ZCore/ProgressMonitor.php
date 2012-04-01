@@ -51,6 +51,7 @@ class ProgressMonitor {
     if($percent < 0)
       $percent = 0;
     if($percent == 100 ||
+       $percent == 0 ||
        abs($percent - $old['percent']) >= 1 ||
        ($old['message'] != $message &&
 	(microtime(true) - self::$lastUpdate) > self::UPDATE_INTERVAL)) {
