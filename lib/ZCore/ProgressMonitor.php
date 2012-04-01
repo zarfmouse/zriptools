@@ -45,14 +45,15 @@ class ProgressMonitor {
     self::initialize();
     $old = self::$memcached->get($id);
     $signal = false;
+    $percent = round($percent, 1);
     if($percent > 100) 
       $percent = 100;
     if($percent < 0)
       $percent = 0;
     if($percent == 100 ||
-       ((($percent - $old['percent']) >= 1 ||
-	 $old['message'] != $message) &&
-	((microtime(true) - self::$lastUpdate) > self::UPDATE_INTERVAL))) {
+       abs($percent - $old['percent']) >= 1 ||
+       ($old['message'] != $message &&
+	(microtime(true) - self::$lastUpdate) > self::UPDATE_INTERVAL)) {
       $signal = true;
       self::$lastUpdate = microtime(true);
     }
