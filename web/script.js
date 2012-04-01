@@ -36,12 +36,23 @@ $.extend(EventReader.prototype, {
 	xhr.send();
     },
     stop: function() {
-	console.log("stop");
 	this.stopped = true;
     }
 });
 
 var events = new EventReader('task-status.php');
-events.setEventHandler(function(data) { console.log(data); });
+events.setEventHandler(function(data) { 
+    var sorted_keys = Object.keys(data).sort();
+    $.each(sorted_keys, function(index, key) {
+	var value = data[key];
+	var id = key.replace(/[^a-z0-9A-Z]/g, '_');
+	var e = $('#'+id);
+	if(e.length == 0) {
+	    $("#tasks").append('<li id="'+id+'"><div class="key">'+key+'</div><div class="message"></div><div class="progress"></div></li>');
+	    e = $('#'+id);
+	}
+	$('#'+id+' .message').html(value.message);
+	$('#'+id+' .progress').progressbar({value: value.percent});
+    });
+});
 events.run();
-
