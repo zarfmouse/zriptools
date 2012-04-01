@@ -38,8 +38,8 @@ $monitor->registerAudioCDAction(function($device) {
     } catch (Exception $e) {
       print "Ripping from $dev failed.\n";
       // TODO: Handle specific failure cases more gracefully.
-#      ProgressMonitor::update($dev, 100, 'Failed.');      
     }
+    system("eject $dev");
   });
 $monitor->registerMultiModeCDAction(function($device) {
     $dev = $device->getDeviceFile();
@@ -59,8 +59,10 @@ $monitor->registerDataDVDAction(function($device) {
   });
 $monitor->registerEjectAction(function($device) {
     $dev = $device->getDeviceFile();
-    print "$dev - Ejected.\n";
+    print "$dev ejected.\n";
     pcntl_waitpid(0, &$status, WNOHANG);
+    ProgressMonitor::init($dev);
+    ProgressMonitor::update($dev, 100, 'Empty.');
   });
 $monitor->run();
 
