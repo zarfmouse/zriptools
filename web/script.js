@@ -42,17 +42,26 @@ $.extend(EventReader.prototype, {
 
 var events = new EventReader('task-status.php');
 events.setEventHandler(function(data) { 
+    var saw = {};
     var sorted_keys = Object.keys(data).sort();
     $.each(sorted_keys, function(index, key) {
 	var value = data[key];
 	var id = key.replace(/[^a-z0-9A-Z]/g, '_');
 	var e = $('#'+id);
 	if(e.length == 0) {
-	    $("#tasks").append('<li id="'+id+'"><div class="key">'+key+'</div><div class="message"></div><div class="progress"></div></li>');
+	    $("#tasks").append('<li class="task active" id="'+id+'"><div class="cell key">'+key+'</div><div class="cell type"></div><div class="cell meta"></div><div class="cell progress_container"><div class="message"></div><div class="progress"></div></div></li>');
 	    e = $('#'+id);
 	}
+	saw[id] = true;
 	$('#'+id+' .message').html(value.message);
+	$('#'+id+' .type').html(value.type);
 	$('#'+id+' .progress').progressbar({value: value.percent});
+    });
+    $(".task.active").each(function(i,e) {
+	var id = $(e).attr('id');
+	if(saw[id] !== true) {
+	    $(e).removeClass('active');
+	}
     });
 });
 events.run();

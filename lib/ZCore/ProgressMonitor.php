@@ -38,10 +38,23 @@ class ProgressMonitor {
     } while (self::$memcached->getResultCode() != Memcached::RES_SUCCESS);
     
     self::$memcached->set($id, array('percent' => 0,
-				     'message' => ''));
+				     'message' => '',
+				     'type' => ''));
   }
 
-  static public function update($id, $percent, $message) {
+  static public function remove($id) {
+    self::initialize();
+    do {
+      $ids = self::$memcached->get(self::ID_FIELD, null, $cas);
+      if (self::$memcached->getResultCode() != Memcached::RES_NOTFOUND) {
+	unset($ids[$id]);
+	self::$memcached->cas($cas, self::ID_FIELD, $ids);
+      }   
+    } while (self::$memcached->getResultCode() != Memcached::RES_SUCCESS);
+    self::$memcached->delete($id);
+  }
+
+  static public function update($id, $percent, $message, $type) {
     self::initialize();
     $old = self::$memcached->get($id);
     $signal = false;
@@ -59,7 +72,8 @@ class ProgressMonitor {
       self::$lastUpdate = microtime(true);
     }
     self::$memcached->set($id, array( 'percent' => $percent,
-				      'message' => $message ));
+				      'message' => $message,
+				      'type' => $type));
     if($signal)
       self::signal();
   }

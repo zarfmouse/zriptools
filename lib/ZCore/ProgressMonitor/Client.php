@@ -12,19 +12,20 @@ class Client {
     $d->addWatch('us.zarfmouse.ZRipTools.ProgressMonitor', 'ProgressSignal');
     $memcached = new Memcached();
     $memcached->addServer('localhost', 11211);
+    self::task_list($memcached, $callback);
     $flag = true;
     do {
       $s = $d->waitLoop( 2000 );
-      if($s instanceof DbusSignal &&
-	 $s->matches('us.zarfmouse.ZRipTools.ProgressMonitor', 
-		     'ProgressSignal')) {
-	$monitors = array();
-	foreach(array_keys($memcached->get(ProgressMonitor::ID_FIELD)) as $id) {
-	  $val = $memcached->get($id);
-	  $monitors[$id] = $val;
-	}
-	$flag = call_user_func($callback, $monitors);
-      }
+      $flag = self::task_list($memcached, $callback);
     } while ($flag);
+  }
+
+  static private function task_list($memcached, $callback) {
+    $monitors = array();      
+    foreach(array_keys($memcached->get(ProgressMonitor::ID_FIELD)) as $id) {
+      $val = $memcached->get($id);
+      $monitors[$id] = $val;
+    }
+    return call_user_func($callback, $monitors);
   }
 }

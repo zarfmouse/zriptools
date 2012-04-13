@@ -12,8 +12,6 @@ define('LIBRARY_ROOT', '/home/zach/CDLibrary');
 $monitor = new MediaMonitor;
 $monitor->registerAudioCDAction(function($device) {
     $dev = $device->getDeviceFile();
-    ProgressMonitor::init($dev);
-    ProgressMonitor::update($dev, 100, 'Initializing.');
     try {
       $discid = new DiscId($dev);
       $cddbid = $discid->cddbid();
@@ -22,7 +20,6 @@ $monitor->registerAudioCDAction(function($device) {
 	mkdir($path, 0755, true);
       }
       print "Ripping $dev to $path.\n";
-      $task = new RipAudio($dev, "$path/$cddbid.pcm", "$path/$cddbid.toc", "$path/$cddbid.cdrdao-log.txt");
       $pid = pcntl_fork();
       if($pid == -1) {
 	die('could not fork');
@@ -30,10 +27,16 @@ $monitor->registerAudioCDAction(function($device) {
 	// parent.
       } else {
 	// child
-	$task->registerProgressListener(function($p, $s) use ($dev) { 
-	    ProgressMonitor::update($dev, $p, $s);
+	$uuid = `uuid`;
+	$uuid = trim($uuid);
+	ProgressMonitor::init($uuid);
+	$task = new RipAudio($dev, "$path/$cddbid.pcm", "$path/$cddbid.toc", "$path/$cddbid.cdrdao-log.txt");
+	$task->registerProgressListener(function($p, $s) use ($dev, $uuid) { 
+	    ProgressMonitor::update($uuid, $p, $s, 'RipAudio');
 	  });
 	$task->run();    
+	ProgressMonitor::update($uuid, 100, "Finished.", 'RipAudio');
+	ProgressMonitor::remove($uuid);
 	system("eject $dev");
 	exit;
       }
@@ -67,8 +70,6 @@ $monitor->registerEjectAction(function($device) {
     $dev = $device->getDeviceFile();
     print "$dev ejected.\n";
     pcntl_waitpid(0, &$status, WNOHANG);
-    ProgressMonitor::init($dev);
-    ProgressMonitor::update($dev, 100, 'Empty.');
   });
 $monitor->run();
 

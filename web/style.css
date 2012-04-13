@@ -1,0 +1,63 @@
+#tasks {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid grey;
+}
+
+.task {
+    height: 2em;
+    line-height: 2em;
+    vertical-align: middle;
+    padding-bottom: 10px;
+    padding-top: 10px;
+    border-bottom: 1px solid grey;
+    clear: left;
+}
+
+.task .cell {
+    float: left;
+    height: 100%;
+    text-align: center;
+}
+
+.task .key {
+    display: none;
+}
+
+.task .type {
+    width: 10%;
+}
+
+.task .meta {
+    width: 65%;
+}
+
+.task.active {
+    background: #66ff66;
+}
+
+.task .progress_container {
+    position: relative;
+    width: 20%;
+}
+
+.task .message {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 10;
+    width: 100%;
+}
+
+.task .progress {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    z-index: 5;
+    font-size: 1em !important;
+}
+
+
+
