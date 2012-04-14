@@ -51,7 +51,8 @@ class MediaMonitor {
 					"org.freedesktop.UDisks");
     foreach($devices->EnumerateDevices()->getData() as $obj) {
       $dbus_path = $obj->getData();
-      $device = new Device($this->dbus, $dbus_path);
+      $device = new Device();
+      $device->initFromDBus($this->dbus, $dbus_path);
       if($device->isOptical() and $device->hasDisc()) {
 	if($this->stateChanged($device)) {
 	  $this->selectAction($device);
@@ -134,7 +135,7 @@ class Device {
   private $IdLabel;
   private $IdType;
 
-  public function __construct($dbus, $dbus_path) {
+  public function initFromDBus($dbus, $dbus_path) {
     $device = $dbus->createProxy('org.freedesktop.UDisks',
 				 $dbus_path,
 				 "org.freedesktop.DBus.Properties");
