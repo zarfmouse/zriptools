@@ -6,11 +6,12 @@ use DBusSignal;
 use DBusArray;
 use DBusObjectPath;
 use Doctrine\Common\Persistence\PersistentObject;
+use DateTime;
 
 /**
  * @Entity
  */
-class DeviceEntity extends PersistentObject {
+class Device extends PersistentObject {
   /** 
    * @Id 
    * @Column(type="integer") 
@@ -19,12 +20,12 @@ class DeviceEntity extends PersistentObject {
   protected $id;
 
   /** 
-   * @Column(type="string") 
+   * @Column(type="boolean") 
    **/
   protected $deviceIsMediaChangeDetected;
 
   /** 
-   * @Column(type="string") 
+   * @Column(type="boolean") 
    **/
   protected $deviceIsRemovable;
 
@@ -49,17 +50,17 @@ class DeviceEntity extends PersistentObject {
   protected $deviceFile;
 
   /** 
-   * @Column(type="string") 
+   * @Column(type="integer") 
    **/
   protected $opticalDiscNumTracks;
 
   /** 
-   * @Column(type="string") 
+   * @Column(type="integer") 
    **/
   protected $opticalDiscNumAudioTracks;
 
   /** 
-   * @Column(type="string") 
+   * @Column(type="integer") 
    **/
   protected $opticalDiscNumSessions;
 
@@ -69,12 +70,12 @@ class DeviceEntity extends PersistentObject {
   protected $driveMedia;
 
   /** 
-   * @Column(type="string") 
+   * @Column(type="bigint") 
    **/
   protected $deviceSize;
 
   /** 
-   * @Column(type="string") 
+   * @Column(type="datetime") 
    **/
   protected $deviceMediaDetectionTime;
 
@@ -106,14 +107,16 @@ class DeviceEntity extends PersistentObject {
 	$val = $val[0];
       }
       $key = lcfirst($key);
-      if(property_exists($this, $key)) {
+      if($key == 'deviceMediaDetectionTime') {
+	$this->setDeviceMediaDetectionTime(new DateTime("@$val"));
+      } else if(property_exists($this, $key)) {
 	$this->{$key} = $val;
       }
     }
   }
 
   public function hasDisc() {
-    if($this->getDeviceMediaDetectionTime() > 0 and 
+    if($this->getDeviceMediaDetectionTime()->getTimestamp() > 0 and 
        $this->getDeviceSize() > 0) {
       return true;
     } else {

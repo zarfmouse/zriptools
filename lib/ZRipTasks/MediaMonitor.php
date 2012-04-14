@@ -4,7 +4,8 @@ namespace ZRipTasks;
 use DBus;
 use DBusSignal;
 use Exception;
-use ZRipEntities\DeviceEntity;
+use ZRipEntities\Device;
+use Doctrine\Common\Persistence\PersistentObject;
 
 class MediaMonitor {
   private $audioCDAction;
@@ -50,7 +51,7 @@ class MediaMonitor {
 					"org.freedesktop.UDisks");
     foreach($devices->EnumerateDevices()->getData() as $obj) {
       $dbus_path = $obj->getData();
-      $device = new DeviceEntity();
+      $device = new Device();
       $device->initFromDBus($this->dbus, $dbus_path);
       if($device->isOptical() and $device->hasDisc()) {
 	if($this->stateChanged($device)) {
@@ -87,7 +88,7 @@ class MediaMonitor {
   }
 
   private function stateChanged($device) {
-    $detectTime = $device->getDeviceMediaDetectionTime();
+    $detectTime = $device->getDeviceMediaDetectionTime()->getTimestamp();
     $dev= $device->getDeviceFile();
     if((!array_key_exists($dev, $this->lastDetectedTime)) or
        $this->lastDetectedTime[$dev] != $detectTime) {
