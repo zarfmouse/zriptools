@@ -1,6 +1,5 @@
 #!/usr/bin/php
 <?php
-
 require_once __DIR__."/../lib/autoload-init.php";
 require_once __DIR__."/../lib/doctrine-init.php";
 
@@ -8,8 +7,61 @@ use Doctrine\Common\Persistence\PersistentObject;
 use Symfony\Component\Console\Helper\HelperSet;
 use Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper;
 use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Application;
+
+class DbCliCommand extends Command {
+    protected function configure() {
+      $this->setName('zriptools:db-cli')
+        ->setDescription('Launches a CLI for the configured database.')
+        ->setHelp("Launches a CLI for the configured database.");
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output) {
+        $conn = $this->getHelper('db')->getConnection();
+	
+	$driver = $conn->getDriver();
+	if($driver->getName() == 'pdo_mysql') {
+	  $args = array();
+	  $host = $conn->getHost();
+	  if(isset($host)) {
+	    $args[] = "--host=$host";
+	  }
+	  $port = $conn->getPort();
+	  if(isset($port)) {
+	    $args[] = "--port=$port";
+	  }
+	  $username = $conn->getUsername();
+	  if(isset($username)) {
+	    $args[] = "--user=$username";
+	  }
+	  $password = $conn->getPassword();
+	  if(isset($password)) {
+	    $args[] = "--password=$password";
+	  }
+	  $database = $conn->getDatabase();
+	  if(isset($database)) {
+	    $args[] = "$database";
+	  }
+	  var_dump($args);
+	  pcntl_exec('/usr/bin/mysql', $args);
+	} else {
+	  throw new Exception ("Unsupported driver: $driver\n");
+	}
+    }
+}
 
 $em = PersistentObject::getObjectManager($entityManager);
-$helperSet = new HelperSet(array('em' => new EntityManagerHelper($em)));
-ConsoleRunner::run($helperSet);
-
+$conn = $em->getConnection();
+$helperSet = new HelperSet(array('em' => new EntityManagerHelper($em),
+				 'db' => new ConnectionHelper($conn)));
+$cli = new Application('Doctrine Command Line Interface', 
+		       \Doctrine\ORM\Version::VERSION);
+$cli->setCatchExceptions(true);
+$cli->setHelperSet($helperSet);
+ConsoleRunner::addCommands($cli);
+$cli->addCommands(array(new DbCliCommand()));
+$cli->run();
