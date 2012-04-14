@@ -4,8 +4,8 @@
 require_once __DIR__."/../lib/autoload-init.php";
 require_once __DIR__."/../lib/doctrine-init.php";
 
-use ZRipTasks\MediaMonitor;
-use ZRipTasks\DiscId;
+use ZRipUtils\MediaMonitor;
+use ZRipUtils\DiscId;
 use ZRipTasks\RipAudio;
 use ZCore\ProgressMonitor;
 
@@ -13,6 +13,7 @@ define('LIBRARY_ROOT', '/home/zach/CDLibrary');
 
 $monitor = new MediaMonitor;
 $monitor->registerAudioCDAction(function($device) {
+    
     $dev = $device->getDeviceFile();
     try {
       $discid = new DiscId($dev);

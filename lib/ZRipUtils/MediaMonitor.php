@@ -1,6 +1,6 @@
 <?php
 
-namespace ZRipTasks;
+namespace ZRipUtils;
 use DBus;
 use DBusSignal;
 use Exception;
