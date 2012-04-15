@@ -5,49 +5,20 @@ require_once __DIR__."/../lib/autoload-init.php";
 require_once __DIR__."/../lib/doctrine-init.php";
 
 use ZRipUtils\MediaMonitor;
+use ZRipUtils\TaskManager;
 use ZRipUtils\DiscId;
 use ZRipTasks\RipAudio;
 use ZCore\ProgressMonitor;
 
 define('LIBRARY_ROOT', '/home/zach/CDLibrary');
 
+$task_manager = new TaskManager;
+$progress_monitor = new ProgressMonitor;
+$task_manager->setProgressMonitor($progress_monitor);
 $monitor = new MediaMonitor;
-$monitor->registerAudioCDAction(function($device) {
-    
-    $dev = $device->getDeviceFile();
-    try {
-      $discid = new DiscId($dev);
-      $cddbid = $discid->cddbid();
-      $path = LIBRARY_ROOT . '/' . $discid->dir();
-      if(!file_exists($path)) {
-	mkdir($path, 0755, true);
-      }
-      print "Ripping $dev to $path.\n";
-      $pid = pcntl_fork();
-      if($pid == -1) {
-	die('could not fork');
-      } else if($pid) {
-	// parent.
-      } else {
-	// child
-	$uuid = `uuid`;
-	$uuid = trim($uuid);
-	ProgressMonitor::init($uuid);
-	$task = new RipAudio($dev, "$path/$cddbid.pcm", "$path/$cddbid.toc", "$path/$cddbid.cdrdao-log.txt");
-	$task->registerProgressListener(function($p, $s) use ($dev, $uuid) { 
-	    ProgressMonitor::update($uuid, $p, $s, 'RipAudio');
-	  });
-	$task->run();    
-	ProgressMonitor::update($uuid, 100, "Finished.", 'RipAudio');
-	ProgressMonitor::remove($uuid);
-	system("eject $dev");
-	exit;
-      }
-    } catch (Exception $e) {
-      print "Ripping from $dev failed.\n";
-      // TODO: Handle specific failure cases more gracefully.
-      system("eject $dev");
-    }
+
+$monitor->registerAudioCDAction(function($device) use ($task_manager) {
+    $task_manager->run(new RipAudio($device));
   });
 $monitor->registerMultiModeCDAction(function($device) {
     $dev = $device->getDeviceFile();
@@ -72,7 +43,7 @@ $monitor->registerDataDVDAction(function($device) {
 $monitor->registerEjectAction(function($device) {
     $dev = $device->getDeviceFile();
     print "$dev ejected.\n";
-    pcntl_waitpid(0, &$status, WNOHANG);
+    $task_manager->reaper();
   });
 $monitor->run();
 

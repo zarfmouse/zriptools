@@ -3,6 +3,10 @@
 namespace ZRipTasks;
 use ZCore\Task;
 use Exception;
+use ZRipEntities\Device;
+
+// TODO: Make this configurable!
+define('LIBRARY_ROOT', '/home/zach/CDLibrary');
 
 class RipAudio extends Task {
   private $dev;
@@ -19,8 +23,18 @@ class RipAudio extends Task {
     return ($m*60*75) + ($s*75) + $f;
   }
 
-  public function __construct($dev, $pcm, $toc, $log=null) {
+  public function __construct(Device $device) {
     parent::__construct();
+    $dev = $device->getDeviceFile();
+    $uuid = $this->getUUID();
+    $path = LIBRARY_ROOT . '/' . implode('/',str_split(substr($uuid,0,8))).'/'.$uuid;
+    if(!file_exists($path)) {
+      mkdir($path, 0755, true);
+    }
+    print "Ripping $dev to $path.\n";
+    $pcm = "$path/$uuid.pcm";
+    $toc = "$path/$uuid.toc";
+    $log = "$path/$uuid.log.txt";
     if(is_null($dev) || 
        ! (preg_match('(^/dev/.*)', $dev) && file_exists($dev))) 
       throw new InvalidDeviceException($dev);

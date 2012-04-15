@@ -71,7 +71,7 @@ class MediaMonitor {
       if($signal instanceof DbusSignal) {  
 	if($signal->matches($interface, $method)) {
 	  $dbus_path = $signal->getData()->getData();
-	  $device = new DeviceEntity();
+	  $device = new Device();
 	  $device->initFromDBus($this->dbus, $dbus_path);
 	  if($device->isOptical()) {
 	    if($this->stateChanged($device)) {
