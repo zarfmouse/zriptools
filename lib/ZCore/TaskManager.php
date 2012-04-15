@@ -1,7 +1,6 @@
 <?php
 
-namespace ZRipUtils;
-use ZCore\Task;
+namespace ZCore;
 use Doctrine\Common\Persistence\PersistentObject;
 
 class TaskManager {
@@ -13,7 +12,7 @@ class TaskManager {
     pcntl_signal(SIGCHLD, array($this,"reaper"));
   }
 
-  public function setProgressMonitor($progressMonitor) {
+  public function setProgressMonitor(ProgressMonitor $progressMonitor) {
     $this->progressMonitor = $progressMonitor;
   }
 
