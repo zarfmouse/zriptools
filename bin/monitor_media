@@ -1,6 +1,8 @@
 #!/usr/bin/php
 <?php
 
+declare(ticks = 1);
+
 require_once __DIR__."/../lib/autoload-init.php";
 require_once __DIR__."/../lib/doctrine-init.php";
 
@@ -43,7 +45,6 @@ $monitor->registerDataDVDAction(function($device) {
 $monitor->registerEjectAction(function($device) {
     $dev = $device->getDeviceFile();
     print "$dev ejected.\n";
-    $task_manager->reaper();
   });
 $monitor->run();
 

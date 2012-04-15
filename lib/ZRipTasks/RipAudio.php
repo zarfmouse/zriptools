@@ -113,7 +113,6 @@ class RipAudio extends Task {
     $pcm = $this->entity->getPcm();
     $toc = $this->entity->getToc();
     $log = $this->entity->getLog();
-
     if((!$this->entity->getComplete()) || (!file_exists($pcm)) || (!file_exists($toc))) {
       if(file_exists($pcm))
 	unlink($pcm);

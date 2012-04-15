@@ -34,6 +34,7 @@ class ProgressMonitor {
     $this->memcached->set($id, array('percent' => 0,
 				     'message' => '',
 				     'type' => ''));
+    $this->signal();
   }
 
   public function remove($id) {
@@ -45,6 +46,7 @@ class ProgressMonitor {
       }   
     } while ($this->memcached->getResultCode() != Memcached::RES_SUCCESS);
     $this->memcached->delete($id);
+    $this->signal();
   }
 
   public function update($id, $percent, $message, $type) {
