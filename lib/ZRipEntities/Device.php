@@ -5,13 +5,13 @@ use DBus;
 use DBusSignal;
 use DBusArray;
 use DBusObjectPath;
-use Doctrine\Common\Persistence\PersistentObject;
+
 use DateTime;
 
 /**
  * @Entity
  */
-class Device extends PersistentObject {
+class Device extends ActiveRecord {
   /** 
    * @Id 
    * @Column(type="integer") 

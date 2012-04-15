@@ -4,15 +4,10 @@ namespace ZRipTasks;
 use ZCore\Task;
 use Exception;
 use ZRipEntities\Device;
-
-// TODO: Make this configurable!
-define('LIBRARY_ROOT', '/home/zach/CDLibrary');
+use ZRipEntities\RipAudio as RipAudioEntity;
 
 class RipAudio extends Task {
-  private $dev;
-  private $pcm;
-  private $toc;
-  private $log;
+  private $success;
   
   private static function tmp($path) {
     return "$path.tmp";
@@ -51,15 +46,20 @@ class RipAudio extends Task {
     if(is_null($pcm) || is_null($toc)) {
       throw new InvalidArgumentsException();
     }
-    $this->dev = $dev;
-    $this->pcm = $pcm;
-    $this->toc = $toc;
-    $this->log = $log;
+
+    $entity = new RipAudioEntity;
+    $entity->setUuid($uuid);
+    $entity->setDevice($device);
+    $entity->setPcm($pcm);
+    $entity->setToc($toc);
+    $entity->setLog($log);
+    $entity->save();
+    $this->entity = $entity;
     $this->success = false;
   }
-  
+
   private function rip($pcm, $toc, $log, $paranoia, $pass) {
-    $dev = $this->dev;
+    $dev = $this->entity->getDevice()->getDeviceFile();
     $wallclock_start = microtime(true);
     $handle = popen("/usr/bin/cdrdao read-cd --paranoia-mode $paranoia --device $dev --datafile $pcm $toc 2>&1", 'r');
     $buffer = '';
@@ -104,10 +104,10 @@ class RipAudio extends Task {
   }
 
   public function cleanup() {
-    $dev = $this->dev;
-    $pcm = $this->pcm;
-    $toc = $this->toc;
-    $log = $this->log;
+    $dev = $this->entity->getDevice()->getDeviceFile();
+    $pcm = $this->entity->getPcm();
+    $toc = $this->entity->getToc();
+    $log = $this->entity->getLog();
 
     if((!$this->success) || (!file_exists($pcm)) || (!file_exists($toc))) {
       if(file_exists($pcm))
@@ -124,10 +124,10 @@ class RipAudio extends Task {
   }
 
   public function run() {
-    $dev = $this->dev;
-    $pcm = $this->pcm;
-    $toc = $this->toc;
-    $log = $this->log;
+    $dev = $this->entity->getDevice()->getDeviceFile();
+    $pcm = $this->entity->getPcm();
+    $toc = $this->entity->getToc();
+    $log = $this->entity->getLog();
 
     register_shutdown_function(array($this, 'cleanup'));
     
