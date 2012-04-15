@@ -89,6 +89,11 @@ class Device extends ActiveRecord {
    **/
   protected $idType;
 
+  /**
+   * @OneToOne(targetEntity="RipAudio", mappedBy="device", cascade={"all"})
+   */
+  protected $ripAudio;
+
   public function initFromDBus($dbus, $dbus_path) {
     $device = $dbus->createProxy('org.freedesktop.UDisks',
 				 $dbus_path,

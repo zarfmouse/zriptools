@@ -5,10 +5,11 @@ use ZCore\Task;
 use Exception;
 use ZRipEntities\Device;
 use ZRipEntities\RipAudio as RipAudioEntity;
+use ZRipEntities\DiscId;
 
 class RipAudio extends Task {
-  private $success;
-  
+  private $entity;
+
   private static function tmp($path) {
     return "$path.tmp";
   }
@@ -47,15 +48,19 @@ class RipAudio extends Task {
       throw new InvalidArgumentsException();
     }
 
+    $discid = new DiscId;
+    $discid->initFromDevice($device);
+
     $entity = new RipAudioEntity;
     $entity->setUuid($uuid);
     $entity->setDevice($device);
+    $entity->setDiscId($discid);
     $entity->setPcm($pcm);
     $entity->setToc($toc);
     $entity->setLog($log);
+    $entity->setComplete(false);
     $entity->save();
     $this->entity = $entity;
-    $this->success = false;
   }
 
   private function rip($pcm, $toc, $log, $paranoia, $pass) {
@@ -109,7 +114,7 @@ class RipAudio extends Task {
     $toc = $this->entity->getToc();
     $log = $this->entity->getLog();
 
-    if((!$this->success) || (!file_exists($pcm)) || (!file_exists($toc))) {
+    if((!$this->entity->getComplete()) || (!file_exists($pcm)) || (!file_exists($toc))) {
       if(file_exists($pcm))
 	unlink($pcm);
       if(file_exists($toc))
@@ -135,14 +140,22 @@ class RipAudio extends Task {
     $md51 = md5_file($pcm);
     $this->rip("$pcm.2", "$toc.2", null, 0, 2);
     $md52 = md5_file("$pcm.2");
-    
+
+    $size = filesize($pcm);
     if($md51 != $md52) {
-      $size = filesize($pcm);
       $diff_bytes = intval(shell_exec("/usr/bin/cmp -b -l $pcm $pcm.2 | wc -l"));
       $error = sprintf("% 2.4f", ($diff_bytes / $size) * 100);
       $this->rip($pcm, $toc, $log, 3, 3);
-    } 
-    $this->success = true;
+      $md51 = md5_file("$pcm");
+    } else {
+      $diff_bytes = 0;
+    }
+
+    $this->entity->setComplete(true);
+    $this->entity->setSize($size);
+    $this->entity->setMd5($md51);
+    $this->entity->setErrorBytes($diff_bytes);
+    $this->entity->save();
   }
 
 }
