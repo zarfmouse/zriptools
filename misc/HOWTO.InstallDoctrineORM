@@ -9,3 +9,7 @@ $dbParams = array('driver' => 'pdo_mysql',
 		  'password' => 'MYSQL_PASSWORD',
 		  'dbname' => 'DB_NAME');
 $ bin/doctrine orm:schema-tool:create
+
+Additional commands: 
+$ bin/doctrine orm:schema-tool:update
+$ bin/doctrine zriptools:db-cli

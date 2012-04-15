@@ -7,13 +7,17 @@ misc/HOWTO.ConfigureDbusSecurity
 You need to build the misc/discid binary using the instruction in 
 misc/HOWTO.BuildDiscId
 
+You need to install Doctrine ORM 2.x and configure a database using
+the instructions in
+misc/HOWTO.InstallDoctrineORM
+
 Here are some commands you can run: 
 
-To rip a single disc manually. 
-$ bin/rip --device /dev/scd0 --pcm /tmp/pcm --toc /tmp/toc --log /tmp/log
+To clear out memcache.
+$ bin/clear_memcached
 
-To output some disc identification data for a disc manually.
-$ bin/identify --device /dev/scd0
+To execute doctrine CLI commands (see misc/HOWTO.InstallDoctrineORM).
+$ bin/doctrine
 
 To monitor all the optical drives for disc insertion and start ripping
 automatically.
