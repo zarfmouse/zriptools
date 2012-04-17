@@ -46,7 +46,6 @@ class DbCliCommand extends Command {
 	  if(isset($database)) {
 	    $args[] = "$database";
 	  }
-	  var_dump($args);
 	  pcntl_exec('/usr/bin/mysql', $args);
 	} else {
 	  throw new Exception ("Unsupported driver: $driver\n");
