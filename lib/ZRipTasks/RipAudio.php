@@ -6,6 +6,7 @@ use Exception;
 use ZRipEntities\Device;
 use ZRipEntities\RipAudio as RipAudioEntity;
 use ZRipEntities\DiscId;
+use ZRipEntities\RipAudioPass;
 
 class RipAudio extends Task {
   private $entity;
@@ -106,6 +107,22 @@ class RipAudio extends Task {
       file_put_contents($log, $log_data);
     }
     $this->setProgress(100, "Pass #$pass {$rate}x 00m00s");
+
+    $size = filesize($pcm);
+    $md5 = md5_file($pcm);
+
+    $pass_entity = new RipAudioPass;
+    $pass_entity->setPass($pass);
+    $pass_entity->setParanoia($paranoia);
+    $pass_entity->setTotalFrames($total_frames);
+    $pass_entity->setSpeed($rate);
+    $pass_entity->setSeconds($wallclock_current-$wallclock_start);
+    $pass_entity->setSize($size);
+    $pass_entity->setMd5($md5);
+    $pass_entity->setRipAudio($this->entity);
+    $pass_entity->save();
+
+    return $md5;
   }
 
   public function cleanup() {
@@ -135,17 +152,14 @@ class RipAudio extends Task {
 
     register_shutdown_function(array($this, 'cleanup'));
     
-    $this->rip($pcm, $toc, $log, 0, 1);
-    $md51 = md5_file($pcm);
-    $this->rip("$pcm.2", "$toc.2", null, 0, 2);
-    $md52 = md5_file("$pcm.2");
-
+    
+    $md51 = $this->rip($pcm, $toc, $log, 0, 1);
+    $md52 = $this->rip("$pcm.2", "$toc.2", null, 0, 2);
     $size = filesize($pcm);
     if($md51 != $md52) {
       $diff_bytes = intval(shell_exec("/usr/bin/cmp -b -l $pcm $pcm.2 | wc -l"));
       $error = sprintf("% 2.4f", ($diff_bytes / $size) * 100);
-      $this->rip($pcm, $toc, $log, 3, 3);
-      $md51 = md5_file("$pcm");
+      $md51 = $this->rip($pcm, $toc, $log, 3, 3);
     } else {
       $diff_bytes = 0;
     }

@@ -29,6 +29,11 @@ class RipAudio extends ActiveRecord {
   protected $discId;
 
   /** 
+   * @OneToMany(targetEntity="RipAudioPass", mappedBy="ripAudio", cascade={"all"})
+   **/
+  protected $ripAudioPasses;
+
+  /** 
    * @Column(type="string") 
    **/
   protected $pcm;
