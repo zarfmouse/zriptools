@@ -14,7 +14,7 @@ class RipAudio extends ActiveRecord {
   protected $id;
 
   /** 
-   * @Column(type="string", unique=true) 
+   * @Column(type="string", unique=true, length=36) 
    **/
   protected $uuid;
 
@@ -64,7 +64,7 @@ class RipAudio extends ActiveRecord {
   protected $size;
 
   /** 
-   * @Column(type="string", nullable=true) 
+   * @Column(type="string", nullable=true, length=32) 
    **/  
   protected $md5;
 

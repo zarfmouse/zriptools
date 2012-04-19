@@ -15,12 +15,12 @@ class DiscId extends ActiveRecord {
   protected $id;
 
   /** 
-   * @Column(type="string") 
+   * @Column(type="string", length=8) 
    **/
   protected $freedb; 
 
   /** 
-   * @Column(type="string") 
+   * @Column(type="string", length=28) 
    **/
   protected $musicbrainz;
 
