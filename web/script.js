@@ -44,10 +44,12 @@ var RipAudio = function(id) {this.init(id);};
 $.extend(RipAudio.prototype, {
     element: undefined,
     init: function(id) {
-	this.element = $('<li class="task"><div class="cell key">'+id+'</div><div class="cell type">RipAudio</div><div class="cell meta"></div><div class="cell progress_container"><div class="message"></div><div class="progress"></div></div></li>');
+	this.element = $('<li class="task"><div class="cell key">'+id+'</div><div class="cell type">RipAudio</div><div class="cell meta"></div><div class="cell progress_container"><div class="message"></div><div class="progress"></div></div><div class="trigger_container"><div class="trigger delete"></div></div></li>');
+	this.addSlotNumber();
 	this.addBarCode();
 	this.addCDDB();
 	this.addMusicBrainz();
+	this.addNote();
     },
     getId: function() {
 	return this.element.find('.key').html();
@@ -72,10 +74,36 @@ $.extend(RipAudio.prototype, {
     appendMeta: function(meta) {
 	this.element.find('.meta').append(meta);
     },
+    addSlotNumber: function() {
+	var wrapper = $('<div title="Enter case and item number" class="slot"></div>');
+	var input = $('<input type="text" name="slot" value="" size="8"/>');
+	var trigger = $('<div class="trigger"></div>');
+	trigger.addClass('accept');
+	wrapper.append(input,trigger);
+	this.appendMeta(wrapper);
+	var obj = this;
+	input.change(function (ev) {
+	    console.log('changed slot on '+obj.getId()+' to '+$(this).val());
+	});
+    },
+    addNote: function() {
+	var wrapper = $('<div title="Enter an optional note" class="note"></div>');
+	var input = $('<input type="text" name="note" value="" />');
+	var trigger = $('<div class="trigger"></div>');
+	trigger.addClass('accept');
+	wrapper.append(input,trigger);
+	this.appendMeta(wrapper);
+	var obj = this;
+	input.change(function (ev) {
+	    console.log('changed note on '+obj.getId()+' to '+$(this).val());
+	});
+    },
     addBarCode: function() {
-	var wrapper = $('<div class="barcode"></div>');
-	var input = $('<input type="text" name="barcode" value=""/>');
-	wrapper.append(input);
+	var wrapper = $('<div title="Scan in UPC barcode" class="barcode"></div>');
+	var input = $('<input type="text" name="barcode" value="" size="13"/>');
+	var trigger = $('<div class="trigger"></div>');
+	trigger.addClass('accept');
+	wrapper.append(input,trigger);
 	this.appendMeta(wrapper);
 	var obj = this;
 	input.change(function (ev) {
@@ -83,9 +111,11 @@ $.extend(RipAudio.prototype, {
 	});
     },
     addCDDB: function() {
-	var wrapper = $('<div class="cddb"></div>');
+	var wrapper = $('<div title="Pick the title (FreeDB)" class="cddb"></div>');
 	var select = $('<select name="cddb"><option>Loading...</option><option></option></select>');
-	wrapper.append(select);
+	var trigger = $('<div class="trigger"></div>');
+	trigger.addClass('accept');
+	wrapper.append(select,trigger);
 	this.appendMeta(wrapper);
 	var obj = this;
 	select.change(function (ev) {
@@ -93,9 +123,11 @@ $.extend(RipAudio.prototype, {
 	});
     },
     addMusicBrainz: function() {
-	var wrapper = $('<div class="musicbrainz"></div>');
+	var wrapper = $('<div title="Pick the title (MusicBrainz)" class="musicbrainz"></div>');
 	var select = $('<select name="musicbrainz"><option>Loading...</option><option></option></select>');
-	wrapper.append(select);
+	var trigger = $('<div class="trigger"></div>');
+	trigger.addClass('accept');
+	wrapper.append(select, trigger);
 	this.appendMeta(wrapper);
 	var obj = this;
 	select.change(function (ev) {
@@ -123,11 +155,9 @@ $.extend(RipAudio, {
     update_from_events: function(data) {
 	var saw = {};
 	var sorted_keys = Object.keys(data).sort();
-	var obj = this;
 	$.each(sorted_keys, function(index, key) {
 	    var value = data[key];
-	    // TODO: Refactor to allow multiple types using value.type.
-	    var task = obj.find_or_create(key);
+	    var task = RipAudio.find_or_create(key);
  	    saw[key] = true;
 	    task.setProgress(value.percent);
 	    task.setMessage(value.message);
@@ -135,8 +165,8 @@ $.extend(RipAudio, {
 	});
 	$(".task.active").each(function(i,e) {
 	    var id = $(e).find('.key').html();
-	    var task = obj.find(id);
-	    $(e).setActive(saw[id] === true);
+	    var task = RipAudio.find(id);
+	    task.setActive(saw[id] === true);
 	});
     },
 });

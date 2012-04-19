@@ -6,7 +6,7 @@
 }
 
 .task {
-    height: 2em;
+    height: 6.5em;
     line-height: 2em;
     vertical-align: middle;
     padding-bottom: 10px;
@@ -26,14 +26,16 @@
 }
 
 .task .type {
-    width: 10%;
+    display: none;
 }
 
 .task .meta {
-    width: 65%;
+    width: 75%;
 }
 
-.task .meta div {
+.task .meta div,
+.task .meta input,
+.task .meta select {
     float: left;
 }
 
@@ -42,6 +44,8 @@
 }
 
 .task .progress_container {
+    margin-top: 2.25em;
+    height: 2em;
     position: relative;
     width: 20%;
 }
@@ -63,5 +67,64 @@
     font-size: 1em !important;
 }
 
+.trigger {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    margin-left: 0.25em;
+}
 
+.trigger.accept {
+    background-image: url('images/dialog-accept.png');
+    background-size: 32px 32px;
+}
+
+.trigger.edit {
+    background-image: url('images/document-edit.png');
+    background-size: 32px 32px;
+}
+
+.trigger.delete {
+    background-image: url('images/dialog-cancel-3.png');
+    background-size: 32px 32px;
+}
+
+.cddb {
+    clear: left;
+    margin-top: 0.5em;
+}
+
+.musicbrainz {
+    margin-top: 0.5em;
+    margin-left: 3em;
+}
+
+.slot {
+
+}
+
+.barcode {
+    margin-left: 3em;
+
+}
+
+.message {
+    height: 2em;
+}
+
+.note {
+    margin-top: 0.5em;
+    clear: left;
+    width: 100%;
+}
+
+.note input {
+    width: 90%;
+}
+
+.task > .trigger_container {
+    margin-top: 2.25em;
+    height: 2em;
+    float: right;
+}
 
