@@ -143,6 +143,7 @@ class RipAudio extends Task {
       unlink("$pcm.2");
     if(file_exists("$toc.2"))
       unlink("$toc.2");
+    system("eject $dev");
   }
 
   public function run() {
