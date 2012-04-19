@@ -60,6 +60,7 @@ class RipAudio extends Task {
     $entity->setToc($toc);
     $entity->setLog($log);
     $entity->setComplete(false);
+    $entity->setResolved(false);
     $entity->save();
     $this->entity = $entity;
   }

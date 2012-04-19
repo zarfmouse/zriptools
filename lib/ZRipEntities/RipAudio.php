@@ -67,4 +67,11 @@ class RipAudio extends ActiveRecord {
    * @Column(type="string", nullable=true) 
    **/  
   protected $md5;
+
+  /** 
+   * @Column(type="boolean") 
+   **/  
+  protected $resolved;
+
+  
 }
