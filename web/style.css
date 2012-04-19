@@ -33,6 +33,10 @@
     width: 65%;
 }
 
+.task .meta div {
+    float: left;
+}
+
 .task.active {
     background: #66ff66;
 }
