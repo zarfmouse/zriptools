@@ -68,6 +68,12 @@ class RipAudio extends Task {
   private function rip($pcm, $toc, $log, $paranoia, $pass) {
     $dev = $this->entity->getDevice()->getDeviceFile();
     $wallclock_start = microtime(true);
+    if(file_exists($pcm))
+      unlink($pcm);
+    if(file_exists($toc))
+      unlink($toc);
+    if(file_exists($log))
+      unlink($log);
     $handle = popen("/usr/bin/cdrdao read-cd --paranoia-mode $paranoia --device $dev --datafile $pcm $toc 2>&1", 'r');
     $buffer = '';
     $log_data = '';
