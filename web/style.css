@@ -6,12 +6,12 @@
 }
 
 .task {
-    height: 6.5em;
+    height: 8.5em;
     line-height: 2em;
     vertical-align: middle;
     padding-bottom: 10px;
     padding-top: 10px;
-    border-bottom: 1px solid grey;
+    border-bottom: 1px solid black;
     clear: left;
 }
 
@@ -44,7 +44,7 @@
 }
 
 .task .progress_container {
-    margin-top: 2.25em;
+    margin-top: 3.25em;
     height: 2em;
     position: relative;
     width: 20%;
@@ -68,25 +68,30 @@
 }
 
 .trigger {
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     cursor: pointer;
     margin-left: 0.25em;
 }
 
 .trigger.accept {
     background-image: url('images/dialog-accept.png');
-    background-size: 32px 32px;
+    background-size: 24px 24px;
 }
 
 .trigger.edit {
     background-image: url('images/document-edit.png');
-    background-size: 32px 32px;
+    background-size: 24px 24px;
 }
 
 .trigger.delete {
     background-image: url('images/dialog-cancel-3.png');
-    background-size: 32px 32px;
+    background-size: 24px 24px;
+}
+
+.trigger.wait {
+    background-image: url('images/ajax-loader.gif');
+    background-size: 24px 24px;   
 }
 
 .cddb {
@@ -95,8 +100,8 @@
 }
 
 .musicbrainz {
+    clear: left;
     margin-top: 0.5em;
-    margin-left: 3em;
 }
 
 .slot {
