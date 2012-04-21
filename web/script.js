@@ -40,15 +40,17 @@ $.extend(EventReader.prototype, {
     }
 });
 
-var CDDBWidget = function(task) {this.init(task)};
-$.extend(CDDBWidget.prototype, {
+var SelectWidget = function(task, action) {this.init(task, action)};
+$.extend(SelectWidget.prototype, {
     wrapper: null,
     task: null,
     trigger: null,
-    init: function(task) {
+    action: null,
+    init: function(task, action) {
 	var widget = this;
 	widget.task = task;
-	widget.wrapper = $('<div class="cddb"></div>');
+	widget.action = action;
+	widget.wrapper = $('<div></div>').attr('class', action);
 	widget.trigger = $('<div class="trigger"></div>');
 	widget.wrapper.append(widget.trigger);
 	task.appendMeta(widget.wrapper);
@@ -75,18 +77,18 @@ $.extend(CDDBWidget.prototype, {
     displayRead: function(chosen) {
 	var widget = this;
 	if(chosen == '' || chosen == null) {
-	    chosen = "Not in CDDB.";
+	    chosen = "Not found.";
 	}
 	var div = $('<div class="chosen"></div>').text(chosen);
 	widget.wrapper.find('select').remove();
 	widget.wrapper.prepend(div);
-	widget.wrapper.attr('title', 'CDDB: '+chosen);
+	widget.wrapper.attr('title', chosen);
 	widget.editTrigger();
     },
     displayWrite: function(force) {
 	var widget = this;
 	widget.waitTrigger();
-	var select = $('<select name="cddb"></select>');
+	var select = $('<select name="data"></select>');
 	widget.wrapper.find('.chosen').remove();
 	
 	var current_ajax = null;
@@ -95,7 +97,7 @@ $.extend(CDDBWidget.prototype, {
 		current_ajax.abort();
 	    }
 	    current_ajax = $.ajax({
-		url: 'rip_audio_ajax.php/cddb/'+widget.task.getId(),
+		url: 'rip_audio_ajax.php/'+widget.action+'/'+widget.task.getId(),
 		type: 'GET',
 		dataType: 'json',
 		success: function(data) {
@@ -106,7 +108,7 @@ $.extend(CDDBWidget.prototype, {
 			    var option = $('<option></option>').text(o);
 			    if(o == '') {
 				option.attr('value', '');
-				option.text('Not in CDDB.');
+				option.text('Not found.');
 				option.attr('selected', 'selected');
 			    }
 			    select.append(option);
@@ -114,10 +116,10 @@ $.extend(CDDBWidget.prototype, {
 			var change_function = function (ev) {
 			    widget.waitTrigger();
 			    $.ajax({
-				url: 'rip_audio_ajax.php/cddb/'+widget.task.getId(),
+				url: 'rip_audio_ajax.php/'+widget.action+'/'+widget.task.getId(),
 				type: 'POST',
 				dataType: 'json',
-				data: {cddb: $(this).val()},
+				data: {data: $(this).val()},
 				success: function(data) {
 				    widget.displayRead(data.chosen);
 				}
@@ -134,6 +136,13 @@ $.extend(CDDBWidget.prototype, {
 	load_options();
 	widget.trigger.one('click', load_options);
     },
+});
+
+var CDDBWidget = function(task) {this.init(task)};
+$.extend(CDDBWidget.prototype, SelectWidget.prototype, {
+    init: function(task) {
+	SelectWidget.prototype.init.call(this, task, 'cddb');
+    }
 });
 
 var RipAudio = function(id) {this.init(id);};

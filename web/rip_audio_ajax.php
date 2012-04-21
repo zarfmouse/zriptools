@@ -44,7 +44,7 @@ if($action == 'cddb') {
   $retval = [ 'options' => $cddb_options ];
   $meta = $ripAudio->getMeta();
   if($method == 'POST') {
-    $meta->setCddbPick($_REQUEST['cddb']);
+    $meta->setCddbPick($_REQUEST['data']);
     $meta->save();
     $ripAudio->save();
   }
@@ -66,7 +66,7 @@ if($action == 'musicbrainz') {
   }
   $retval = [ 'options' => $options ];
   if($method == 'POST') {
-    $meta->setMusicbrainzRelease($_REQUEST['musicbrainz']);
+    $meta->setMusicbrainzRelease($_REQUEST['data']);
     $meta->save();
     $ripAudio->save();
   }
