@@ -40,6 +40,102 @@ $.extend(EventReader.prototype, {
     }
 });
 
+var CDDBWidget = function(task) {this.init(task)};
+$.extend(CDDBWidget.prototype, {
+    wrapper: null,
+    task: null,
+    trigger: null,
+    init: function(task) {
+	var widget = this;
+	widget.task = task;
+	widget.wrapper = $('<div class="cddb"></div>');
+	widget.trigger = $('<div class="trigger"></div>');
+	widget.wrapper.append(widget.trigger);
+	task.appendMeta(widget.wrapper);
+	$(widget.wrapper).on('click', '.trigger.edit', function(ev) {
+	    widget.displayWrite(true);
+	});
+	widget.displayWrite();
+    },
+    editTrigger: function() {
+	var widget = this;
+	widget.trigger.off('click');
+	widget.trigger.removeClass('accept wait edit').addClass('edit').attr('title', 'Click to edit.');
+    },
+    waitTrigger: function() {
+	var widget = this;
+	widget.trigger.off('click');
+	widget.trigger.removeClass('accept wait edit').addClass('wait').attr('title', 'Loading...');
+    },
+    acceptTrigger: function() {
+	var widget = this;
+	widget.trigger.off('click');
+	widget.trigger.removeClass('accept wait edit').addClass('accept').attr('title', 'Click to submit.');
+    },
+    displayRead: function(chosen) {
+	var widget = this;
+	if(chosen == '' || chosen == null) {
+	    chosen = "Not in CDDB.";
+	}
+	var div = $('<div class="chosen"></div>').text(chosen);
+	widget.wrapper.find('select').remove();
+	widget.wrapper.prepend(div);
+	widget.wrapper.attr('title', 'CDDB: '+chosen);
+	widget.editTrigger();
+    },
+    displayWrite: function(force) {
+	var widget = this;
+	widget.waitTrigger();
+	var select = $('<select name="cddb"></select>');
+	widget.wrapper.find('.chosen').remove();
+	
+	var current_ajax = null;
+	var load_options = function() { 
+	    if(current_ajax !== null) {
+		current_ajax.abort();
+	    }
+	    current_ajax = $.ajax({
+		url: 'rip_audio_ajax.php/cddb/'+widget.task.getId(),
+		type: 'GET',
+		dataType: 'json',
+		success: function(data) {
+		    if(data.chosen !== null && !force) {
+			widget.displayRead(data.chosen);
+		    } else {
+			$.each(data.options, function(i,o) {
+			    var option = $('<option></option>').text(o);
+			    if(o == '') {
+				option.attr('value', '');
+				option.text('Not in CDDB.');
+				option.attr('selected', 'selected');
+			    }
+			    select.append(option);
+			});
+			var change_function = function (ev) {
+			    widget.waitTrigger();
+			    $.ajax({
+				url: 'rip_audio_ajax.php/cddb/'+widget.task.getId(),
+				type: 'POST',
+				dataType: 'json',
+				data: {cddb: $(this).val()},
+				success: function(data) {
+				    widget.displayRead(data.chosen);
+				}
+			    });
+			};
+			select.change(change_function);
+			widget.acceptTrigger();
+			widget.trigger.one('click', change_function);
+			widget.wrapper.prepend(select);
+		    }
+		}
+	    });
+	};
+	load_options();
+	widget.trigger.one('click', load_options);
+    },
+});
+
 var RipAudio = function(id) {this.init(id);};
 $.extend(RipAudio.prototype, {
     element: undefined,
@@ -47,7 +143,7 @@ $.extend(RipAudio.prototype, {
 	this.element = $('<li class="task"><div class="cell key">'+id+'</div><div class="cell type">RipAudio</div><div class="cell meta"></div><div class="cell progress_container"><div class="message"></div><div class="progress"></div></div><div class="trigger_container"><div class="trigger delete"></div></div></li>');
 	this.addSlotNumber();
 	this.addBarCode();
-	this.addCDDB();
+	new CDDBWidget(this);
 	this.addMusicBrainz();
 	this.addNote();
     },
@@ -75,7 +171,7 @@ $.extend(RipAudio.prototype, {
 	this.element.find('.meta').append(meta);
     },
     addSlotNumber: function() {
-	var wrapper = $('<div title="Enter case and item number" class="slot"></div>');
+	var wrapper = $('<div title="Enter case and item number (e.g. 001-0251)" class="slot"></div>');
 	var input = $('<input type="text" name="slot" value="" size="8"/>');
 	var trigger = $('<div class="trigger"></div>');
 	trigger.addClass('accept');
@@ -108,18 +204,6 @@ $.extend(RipAudio.prototype, {
 	var obj = this;
 	input.change(function (ev) {
 	    console.log('changed barcode on '+obj.getId()+' to '+$(this).val());
-	});
-    },
-    addCDDB: function() {
-	var wrapper = $('<div title="Pick the title (FreeDB)" class="cddb"></div>');
-	var select = $('<select name="cddb"><option>Loading...</option><option></option></select>');
-	var trigger = $('<div class="trigger"></div>');
-	trigger.addClass('accept');
-	wrapper.append(select,trigger);
-	this.appendMeta(wrapper);
-	var obj = this;
-	select.change(function (ev) {
-	    console.log('changed cddb on '+obj.getId()+' to '+$(this).val());
 	});
     },
     addMusicBrainz: function() {
