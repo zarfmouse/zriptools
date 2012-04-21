@@ -10,8 +10,9 @@ $entityManager = PersistentObject::getObjectManager();
 $tasks = $entityManager->getRepository('ZRipEntities\RipAudio')->findBy(['resolved' => false, 'complete' => true]);
 $output = [];
 foreach($tasks as $task) {
+  $message = $task->getSuccess() ? 'Success' : 'Failure';
   $output[$task->getUuid()] = ['percent' => 100,
-			       'message' => 'Complete',
+			       'message' => $message,
 			       'type' => 'RipAudio'];
 }
 header("Content-type: application/json");

@@ -261,7 +261,6 @@ $.extend(RipAudio.prototype, {
 	    this.element.addClass('active');
 	} else {
 	    this.element.removeClass('active');
-	    this.setMessage("Complete");
 	}
     },
     setMessage: function(message) {
@@ -303,7 +302,7 @@ $.extend(RipAudio, {
  	    saw[key] = true;
 	    task.setProgress(value.percent);
 	    task.setMessage(value.message);
-	    task.setActive(value.message != 'Complete');
+	    task.setActive(value.message != 'Complete' && value.message != 'Success' && value.message != 'Failure');
 	});
 	$(".task.active").each(function(i,e) {
 	    var id = $(e).find('.key').html();
@@ -313,10 +312,13 @@ $.extend(RipAudio, {
     },
 });
 
-$.getJSON('unresolved-tasks.php', function(data) {
-    RipAudio.update_from_events(data);
-    var events = new EventReader('task-status.php');
-    events.setEventHandler(RipAudio.update_from_events); 
-    events.run();
+$(document).ready(function() {
+    $.getJSON('unresolved-tasks.php', function(data) {
+	RipAudio.update_from_events(data);
+	var events = new EventReader('task-status.php');
+	events.setEventHandler(RipAudio.update_from_events); 
+	events.run();
+    });
 });
+
 

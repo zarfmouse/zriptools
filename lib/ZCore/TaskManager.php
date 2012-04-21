@@ -34,7 +34,7 @@ class TaskManager {
       $task->registerProgressListener(function($p, $s) use ($uuid, $progressMonitor) { 
 	  $progressMonitor->update($uuid, $p, $s, 'RipAudio');
 	});
-      $task->run();    
+      $task->run();
       $progressMonitor->remove($uuid);
       exit;
     }

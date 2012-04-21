@@ -60,8 +60,15 @@ class RipAudio extends ActiveRecord {
 
   /** 
    * @Column(type="boolean") 
+   * True when the ripping process exits.
    **/  
   protected $complete;
+
+  /** 
+   * @Column(type="boolean") 
+   * True when the ripping process was succesful.
+   **/  
+  protected $success;
 
   /** 
    * @Column(type="bigint", nullable=true) 
@@ -74,7 +81,8 @@ class RipAudio extends ActiveRecord {
   protected $md5;
 
   /** 
-   * @Column(type="boolean") 
+   * @Column(type="boolean")    
+   * True when the user removes the task from the UI.
    **/  
   protected $resolved;
 

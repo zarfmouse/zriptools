@@ -60,6 +60,7 @@ class RipAudio extends Task {
     $entity->setToc($toc);
     $entity->setLog($log);
     $entity->setComplete(false);
+    $entity->setSuccess(false);
     $entity->setResolved(false);
     $entity->save();
     $this->entity = $entity;
@@ -137,7 +138,9 @@ class RipAudio extends Task {
     $pcm = $this->entity->getPcm();
     $toc = $this->entity->getToc();
     $log = $this->entity->getLog();
-    if((!$this->entity->getComplete()) || (!file_exists($pcm)) || (!file_exists($toc))) {
+    $this->entity->setComplete(true);
+    if((!$this->entity->getSuccess()) || (!file_exists($pcm)) || (!file_exists($toc))) {
+      $this->entity->setSuccess(false);
       if(file_exists($pcm))
 	unlink($pcm);
       if(file_exists($toc))
@@ -145,6 +148,7 @@ class RipAudio extends Task {
       if(file_exists($log))
 	unlink($log);
     }
+    $this->entity->save();
     if(file_exists("$pcm.2"))
       unlink("$pcm.2");
     if(file_exists("$toc.2"))
@@ -172,7 +176,7 @@ class RipAudio extends Task {
       $diff_bytes = 0;
     }
 
-    $this->entity->setComplete(true);
+    $this->entity->setSuccess(true);
     $this->entity->setSize($size);
     $this->entity->setMd5($md51);
     $this->entity->setErrorBytes($diff_bytes);
