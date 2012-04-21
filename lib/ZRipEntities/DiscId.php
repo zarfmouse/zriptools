@@ -76,7 +76,7 @@ class DiscId extends ActiveRecord {
     preg_match('{/ws/1/release?.*discid=([^&]+)&toc=([^&]+)}', $url, $matches);
     $discid = $matches[1];
     $toc = $matches[2];
-    return "http://mm.musicbrainz.org/ws/2/discid/$discid?toc=$toc";
+    return "http://mm.musicbrainz.org/ws/2/discid/$discid?toc=$toc&cdstubs=no";
   }
   
 }
