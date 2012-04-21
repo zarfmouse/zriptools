@@ -17,7 +17,12 @@ class DiscId extends ActiveRecord {
   /** 
    * @Column(type="string", length=8) 
    **/
-  protected $freedb; 
+  protected $cddb; 
+
+  /** 
+   * @Column(type="string") 
+   **/
+  protected $cddbFull; 
 
   /** 
    * @Column(type="string", length=28) 
@@ -35,7 +40,7 @@ class DiscId extends ActiveRecord {
   protected $musicbrainzWS;
 
   /**
-   * @OneToOne(targetEntity="RipAudio", mappedBy="device", cascade={"all"})
+   * @OneToOne(targetEntity="RipAudio", mappedBy="discId", cascade={"all"})
    */
   protected $ripAudio;
 
@@ -55,10 +60,23 @@ class DiscId extends ActiveRecord {
 	$lines[trim($keyval[0])] = trim($keyval[1]);
       }
     }
-    $this->setFreedb($lines['FreeDB DiscID']);
+    $this->setCddb($lines['FreeDB DiscID']);
     $this->setMusicbrainz($lines['DiscID']);
     $this->setMusicbrainzSubmit($lines['Submit via']);
     $this->setMusicbrainzWS($lines['WS url']);
+    
+    $cddb_full = `/usr/bin/cd-discid $dev`;
+    $cddb_full = trim($cddb_full);
+    $this->setCddbFull($cddb_full);
+  }
+
+  public function getMusicbrainzWS2() {
+    $url = $this->getMusicbrainzWS();
+    $matches = array();
+    preg_match('{/ws/1/release?.*discid=([^&]+)&toc=([^&]+)}', $url, $matches);
+    $discid = $matches[1];
+    $toc = $matches[2];
+    return "http://mm.musicbrainz.org/ws/2/discid/$discid?toc=$toc";
   }
   
 }
