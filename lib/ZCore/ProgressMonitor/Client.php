@@ -21,10 +21,13 @@ class Client {
   }
 
   static private function task_list($memcached, $callback) {
-    $monitors = array();      
-    foreach(array_keys($memcached->get(ProgressMonitor::ID_FIELD)) as $id) {
-      $val = $memcached->get($id);
-      $monitors[$id] = $val;
+    $monitors = array();    
+    $ids = $memcached->get(ProgressMonitor::ID_FIELD);
+    if(is_array($ids)) {
+      foreach(array_keys($ids) as $id) {
+	$val = $memcached->get($id);
+	$monitors[$id] = $val;
+      }
     }
     return call_user_func($callback, $monitors);
   }
