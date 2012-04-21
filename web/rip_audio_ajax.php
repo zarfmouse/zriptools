@@ -40,8 +40,15 @@ if($action == 'cddb') {
   $discId = $ripAudio->getDiscId();
   $cddbFull = $discId->getCddbFull();
   $cddb_options = `/usr/bin/cddbcmd -m http -l 6 -h freedb.freedb.org cddb query $cddbFull`;
-  $cddb_options = explode("\n", $cddb_options);
-  $retval = [ 'options' => $cddb_options ];
+  $options = [];
+  foreach(explode("\n", $cddb_options) as $option) {
+    if(strlen($option)) {
+      $options[$option] = $option;
+    } else {
+      $options[''] = "Not found.";
+    }
+  }
+  $retval = [ 'options' => $options ];
   $meta = $ripAudio->getMeta();
   if($method == 'POST') {
     $meta->setCddbPick($_REQUEST['data']);
@@ -56,14 +63,22 @@ if($action == 'musicbrainz') {
   $discId = $ripAudio->getDiscId();
   $url = $discId->getMusicbrainzWS2();
   $xml = simplexml_load_file($url);
-  $options = array();
-  foreach($xml->disc->{'release-list'}->release as $release) {
+  $options = [];
+  if((bool)$xml->disc) {
+    $releases = $xml->disc->{'release-list'}->release;
+  } else if((bool)$xml->{'release-list'}) {
+    $releases = $xml->{'release-list'}->release;
+  } else {
+    $releases = array();
+  }
+  foreach($releases as $release) {
     $id = $release['id'];
     $title = $release->title;
     $country = $release->country;
     $barcode = $release->barcode;
     $options[(string)$id] = "$title $country $barcode";
   }
+  $options[''] = "Not found.";
   $retval = [ 'options' => $options ];
   if($method == 'POST') {
     $meta->setMusicbrainzRelease($_REQUEST['data']);

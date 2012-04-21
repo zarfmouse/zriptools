@@ -74,15 +74,12 @@ $.extend(SelectWidget.prototype, {
 	widget.trigger.off('click');
 	widget.trigger.removeClass('accept wait edit').addClass('accept').attr('title', 'Click to submit.');
     },
-    displayRead: function(chosen) {
+    displayRead: function(data) {
 	var widget = this;
-	if(chosen == '' || chosen == null) {
-	    chosen = "Not found.";
-	}
-	var div = $('<div class="chosen"></div>').text(chosen);
+	var div = $('<div class="chosen"></div>').text(data.options[data.chosen]);
 	widget.wrapper.find('select').remove();
 	widget.wrapper.prepend(div);
-	widget.wrapper.attr('title', chosen);
+	widget.wrapper.attr('title', data.chosen);
 	widget.editTrigger();
     },
     displayWrite: function(force) {
@@ -102,13 +99,12 @@ $.extend(SelectWidget.prototype, {
 		dataType: 'json',
 		success: function(data) {
 		    if(data.chosen !== null && !force) {
-			widget.displayRead(data.chosen);
+			widget.displayRead(data);
 		    } else {
 			$.each(data.options, function(i,o) {
 			    var option = $('<option></option>').text(o);
-			    if(o == '') {
-				option.attr('value', '');
-				option.text('Not found.');
+			    option.attr('value', i);
+			    if(data.chosen === i) {
 				option.attr('selected', 'selected');
 			    }
 			    select.append(option);
@@ -119,9 +115,9 @@ $.extend(SelectWidget.prototype, {
 				url: 'rip_audio_ajax.php/'+widget.action+'/'+widget.task.getId(),
 				type: 'POST',
 				dataType: 'json',
-				data: {data: $(this).val()},
+				data: {data: select.val()},
 				success: function(data) {
-				    widget.displayRead(data.chosen);
+				    widget.displayRead(data);
 				}
 			    });
 			};
@@ -134,7 +130,7 @@ $.extend(SelectWidget.prototype, {
 	    });
 	};
 	load_options();
-	widget.trigger.one('click', load_options);
+	widget.trigger.on('click', load_options);
     },
 });
 
@@ -142,6 +138,13 @@ var CDDBWidget = function(task) {this.init(task)};
 $.extend(CDDBWidget.prototype, SelectWidget.prototype, {
     init: function(task) {
 	SelectWidget.prototype.init.call(this, task, 'cddb');
+    }
+});
+
+var MusicbrainzWidget = function(task) {this.init(task)};
+$.extend(MusicbrainzWidget.prototype, SelectWidget.prototype, {
+    init: function(task) {
+	SelectWidget.prototype.init.call(this, task, 'musicbrainz');
     }
 });
 
@@ -153,7 +156,7 @@ $.extend(RipAudio.prototype, {
 	this.addSlotNumber();
 	this.addBarCode();
 	new CDDBWidget(this);
-	this.addMusicBrainz();
+	new MusicbrainzWidget(this);
 	this.addNote();
     },
     getId: function() {
