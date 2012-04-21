@@ -89,4 +89,37 @@ if($action == 'musicbrainz') {
   print json_encode($retval);
 }
 
+if($action == 'note') {
+  $retval = [];
+  if($method == 'POST') {
+    $meta->setNote($_REQUEST['data']);
+    $meta->save();
+    $ripAudio->save();
+  }
+  $retval['chosen'] = $meta->getNote(); 
+  print json_encode($retval);
+}
+
+if($action == 'barcode') {
+  $retval = [];
+  if($method == 'POST') {
+    $meta->setBarcode($_REQUEST['data']);
+    $meta->save();
+    $ripAudio->save();
+  }
+  $retval['chosen'] = $meta->getBarcode(); 
+  print json_encode($retval);
+}
+
+if($action == 'slot') {
+  $retval = [];
+  if($method == 'POST') {
+    $meta->setSlot($_REQUEST['data']);
+    $meta->save();
+    $ripAudio->save();
+  }
+  $retval['chosen'] = $meta->getSlot(); 
+  print json_encode($retval);
+}
+
 

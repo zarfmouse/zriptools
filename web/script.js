@@ -40,8 +40,8 @@ $.extend(EventReader.prototype, {
     }
 });
 
-var SelectWidget = function(task, action) {this.init(task, action)};
-$.extend(SelectWidget.prototype, {
+var SavableWidget = function(task, action) {this.init(task, action)};
+$.extend(SavableWidget.prototype, {
     wrapper: null,
     task: null,
     trigger: null,
@@ -73,6 +73,13 @@ $.extend(SelectWidget.prototype, {
 	var widget = this;
 	widget.trigger.off('click');
 	widget.trigger.removeClass('accept wait edit').addClass('accept').attr('title', 'Click to submit.');
+    },
+});
+
+var SelectWidget = function(task, action) {this.init(task, action)};
+$.extend(SelectWidget.prototype, SavableWidget.prototype, {
+    init: function(task, action) {
+	SavableWidget.prototype.init.call(this, task, action);
     },
     displayRead: function(data) {
 	var widget = this;
@@ -148,16 +155,103 @@ $.extend(MusicbrainzWidget.prototype, SelectWidget.prototype, {
     }
 });
 
+var TextWidget = function(task, action) {this.init(task, action, size)};
+$.extend(TextWidget.prototype, SavableWidget.prototype, {
+    size: null,
+    init: function(task, action, size) {
+	SavableWidget.prototype.init.call(this, task, action);
+	this.size= size;
+    },
+    displayRead: function(data) {
+	var widget = this;
+	var text = data.chosen;
+	if(text == '') 
+	    text = "N/A";
+	var div = $('<div class="chosen"></div>').text(text);
+	widget.wrapper.find('input').remove();
+	widget.wrapper.prepend(div);
+	widget.wrapper.attr('title', data.chosen);
+	widget.editTrigger();
+    },
+    displayWrite: function(force) {
+	var widget = this;
+	widget.waitTrigger();
+	var input = $('<input name="data"></input>');
+	if(this.size !== undefined)
+	    input.attr('size', this.size);
+	widget.wrapper.find('.chosen').remove();
+	
+	var current_ajax = null;
+	var load_options = function() { 
+	    if(current_ajax !== null) {
+		current_ajax.abort();
+	    }
+	    current_ajax = $.ajax({
+		url: 'rip_audio_ajax.php/'+widget.action+'/'+widget.task.getId(),
+		type: 'GET',
+		dataType: 'json',
+		success: function(data) {
+		    if(data.chosen !== null && !force) {
+			widget.displayRead(data);
+		    } else {
+			input.val(data.chosen);
+			var change_function = function (ev) {
+			    widget.waitTrigger();
+			    $.ajax({
+				url: 'rip_audio_ajax.php/'+widget.action+'/'+widget.task.getId(),
+				type: 'POST',
+				dataType: 'json',
+				data: {data: input.val()},
+				success: function(data) {
+				    widget.displayRead(data);
+				}
+			    });
+			};
+			input.change(change_function);
+			widget.acceptTrigger();
+			widget.trigger.one('click', change_function);
+			widget.wrapper.prepend(input);
+		    }
+		}
+	    });
+	};
+	load_options();
+	widget.trigger.on('click', load_options);
+    },
+});
+
+var NoteWidget = function(task) {this.init(task)};
+$.extend(NoteWidget.prototype, TextWidget.prototype, {
+    init: function(task) {
+	TextWidget.prototype.init.call(this, task, 'note');
+    }
+});
+
+var SlotWidget = function(task) {this.init(task)};
+$.extend(SlotWidget.prototype, TextWidget.prototype, {
+    init: function(task) {
+	TextWidget.prototype.init.call(this, task, 'slot', 8);
+    }
+});
+
+var BarcodeWidget = function(task) {this.init(task)};
+$.extend(BarcodeWidget.prototype, TextWidget.prototype, {
+    init: function(task) {
+	TextWidget.prototype.init.call(this, task, 'barcode', 13);
+    }
+});
+
+
 var RipAudio = function(id) {this.init(id);};
 $.extend(RipAudio.prototype, {
     element: undefined,
     init: function(id) {
 	this.element = $('<li class="task"><div class="cell key">'+id+'</div><div class="cell type">RipAudio</div><div class="cell meta"></div><div class="cell progress_container"><div class="message"></div><div class="progress"></div></div><div class="trigger_container"><div class="trigger delete"></div></div></li>');
-	this.addSlotNumber();
-	this.addBarCode();
+	new SlotWidget(this);
+	new BarcodeWidget(this);
 	new CDDBWidget(this);
 	new MusicbrainzWidget(this);
-	this.addNote();
+	new NoteWidget(this);
     },
     getId: function() {
 	return this.element.find('.key').html();
@@ -181,54 +275,6 @@ $.extend(RipAudio.prototype, {
     },
     appendMeta: function(meta) {
 	this.element.find('.meta').append(meta);
-    },
-    addSlotNumber: function() {
-	var wrapper = $('<div title="Enter case and item number (e.g. 001-0251)" class="slot"></div>');
-	var input = $('<input type="text" name="slot" value="" size="8"/>');
-	var trigger = $('<div class="trigger"></div>');
-	trigger.addClass('accept');
-	wrapper.append(input,trigger);
-	this.appendMeta(wrapper);
-	var obj = this;
-	input.change(function (ev) {
-	    console.log('changed slot on '+obj.getId()+' to '+$(this).val());
-	});
-    },
-    addNote: function() {
-	var wrapper = $('<div title="Enter an optional note" class="note"></div>');
-	var input = $('<input type="text" name="note" value="" />');
-	var trigger = $('<div class="trigger"></div>');
-	trigger.addClass('accept');
-	wrapper.append(input,trigger);
-	this.appendMeta(wrapper);
-	var obj = this;
-	input.change(function (ev) {
-	    console.log('changed note on '+obj.getId()+' to '+$(this).val());
-	});
-    },
-    addBarCode: function() {
-	var wrapper = $('<div title="Scan in UPC barcode" class="barcode"></div>');
-	var input = $('<input type="text" name="barcode" value="" size="13"/>');
-	var trigger = $('<div class="trigger"></div>');
-	trigger.addClass('accept');
-	wrapper.append(input,trigger);
-	this.appendMeta(wrapper);
-	var obj = this;
-	input.change(function (ev) {
-	    console.log('changed barcode on '+obj.getId()+' to '+$(this).val());
-	});
-    },
-    addMusicBrainz: function() {
-	var wrapper = $('<div title="Pick the title (MusicBrainz)" class="musicbrainz"></div>');
-	var select = $('<select name="musicbrainz"><option>Loading...</option><option></option></select>');
-	var trigger = $('<div class="trigger"></div>');
-	trigger.addClass('accept');
-	wrapper.append(select, trigger);
-	this.appendMeta(wrapper);
-	var obj = this;
-	select.change(function (ev) {
-	    console.log('changed musicbrainz on '+obj.getId()+' to '+$(this).val());
-	});
     },
 });
 
