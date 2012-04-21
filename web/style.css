@@ -2,16 +2,16 @@
     list-style-type: none;
     margin: 0;
     padding: 0;
-    border-top: 1px solid grey;
 }
 
 .task {
-    height: 8.5em;
+    height: 9.5em;
     line-height: 2em;
     vertical-align: middle;
-    padding-bottom: 10px;
-    padding-top: 10px;
-    border-bottom: 1px solid black;
+    padding: 5px;
+    border: 1px solid black;
+    margin-top: 5px;
+    margin-bottom: 5px;
     clear: left;
 }
 
@@ -119,6 +119,7 @@
 
 .note {
     margin-top: 0.5em;
+    margin-bottom: 0.5em;
     clear: left;
     width: 100%;
 }
