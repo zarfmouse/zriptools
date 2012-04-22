@@ -244,6 +244,21 @@ $.extend(BarcodeWidget.prototype, TextWidget.prototype, {
 });
 
 
+var DevWidget = function(task) {this.init(task)};
+$.extend(DevWidget.prototype, {
+    wrapper: null,
+    task: null,
+    init: function(task) {
+	var widget = this;
+	widget.task = task;
+	widget.wrapper = $('<div></div>').attr('class', 'dev');
+	task.appendMeta(widget.wrapper);
+	$.getJSON('rip_audio_ajax.php/dev/'+widget.task.getId(), function(data) {
+	    widget.wrapper.text(data.dev);
+	});
+    },
+});
+
 var RipAudio = function(id) {this.init(id);};
 $.extend(RipAudio.prototype, {
     element: undefined,
@@ -253,6 +268,7 @@ $.extend(RipAudio.prototype, {
 	this.element = $('<li class="task"><div class="cell key">'+id+'</div><div class="cell type">RipAudio</div><div class="cell meta"></div><div class="cell progress_container"><div class="message"></div><div class="progress"></div></div><div class="trigger_container"><div class="trigger"></div></div></li>');
 	new SlotWidget(this);
 	new BarcodeWidget(this);
+	new DevWidget(this);
 	new CDDBWidget(this);
 	new MusicbrainzWidget(this);
 	new NoteWidget(this);

@@ -7,10 +7,12 @@ use Doctrine\Common\Persistence\PersistentObject;
 use ZRipEntities\RipAudioMeta;
 use ZCore\MemcachedSingleton;
 
+date_default_timezone_set('US/Central');
+
 $entityManager = PersistentObject::getObjectManager();
 #$entityManager->getConfiguration()->setSQLLogger(new \Doctrine\DBAL\Logging\EchoSQLLogger());
 
-$actions = ['cddb', 'note', 'musicbrainz', 'barcode', 'slot', 'resolve', 'kill'];
+$actions = ['cddb', 'note', 'musicbrainz', 'barcode', 'slot', 'resolve', 'kill', 'dev'];
 
 $method = array_key_exists('method', $_REQUEST) ? $_REQUEST['method'] : $_SERVER['REQUEST_METHOD'];
 if(!in_array($method, ['GET', 'POST'])) {
@@ -140,6 +142,10 @@ if($action == 'kill') {
     $memcached->set("KILL-".$ripAudio->getUuid(), 1);
   }
   print json_encode(array('kill' => 'requested'));
+}
+
+if($action == 'dev') {
+  print json_encode(array('dev' => $ripAudio->getDevice()->getDeviceFile()));
 }
 
 
