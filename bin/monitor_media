@@ -14,6 +14,8 @@ use ZRipUtils\MediaMonitor;
 use ZRipTasks\RipAudio;
 use ZRipTasks\RipMultiMode;
 
+gc_disable();
+
 define('LIBRARY_ROOT', '/home/zach/CDLibrary');
 
 $task_manager = new TaskManager;
