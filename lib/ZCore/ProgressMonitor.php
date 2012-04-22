@@ -24,6 +24,9 @@ class ProgressMonitor {
       if ($this->memcached->getResultCode() == Memcached::RES_NOTFOUND) {
         $ids = array($id => 1);
 	$this->memcached->add(self::ID_FIELD, $ids);
+      }	else if($ids === false) {
+	var_dump($this->memcached->getResultCode());
+	sleep(rand(1,3));
       } else { 
         $ids[$id] = 1;
 	$this->memcached->cas($cas, self::ID_FIELD, $ids);
@@ -39,19 +42,18 @@ class ProgressMonitor {
   public function remove($id) {
     do {
       $ids = $this->memcached->get(self::ID_FIELD, null, $cas);
-      if($ids === false) {
+      if ($this->memcached->getResultCode() == Memcached::RES_NOTFOUND) {
+	$ids = array();
+	$this->memcached->set(self::ID_FIELD, $ids);
+      } else if($ids === false) {
+	var_dump($this->memcached->getResultCode());
 	sleep(rand(1,3));
       } else {
-	if ($this->memcached->getResultCode() == Memcached::RES_NOTFOUND) {
-	  $ids = array();
-	  $this->memcached->set(self::ID_FIELD, $ids);
-	} else { 
-	  if(array_key_exists($id, $ids)) {
-	    unset($ids[$id]);
-	  }
-	  $this->memcached->cas($cas, self::ID_FIELD, $ids);
-	}   
-      } 
+	if(array_key_exists($id, $ids)) {
+	  unset($ids[$id]);
+	}
+	$this->memcached->cas($cas, self::ID_FIELD, $ids);
+      }   
     } while ($this->memcached->getResultCode() != Memcached::RES_SUCCESS);
     $this->memcached->delete($id);
     $this->signal();
