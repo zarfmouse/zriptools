@@ -1,0 +1,42 @@
+* We're forking after the master process has opened several
+  connections (mysql, memcache, and dbus). These connections do not
+  survive the fork and cause various unexpected problems. A better
+  approach would be to have TaskManager fork a bunch of slave
+  processes before ANYTHING else happens and use IPC (maybe memcache)
+  to tell the processes what to do. Then each process would be
+  starting its connections for the first time in that process rather
+  than either re-using or opening a second connection within the same
+  process.
+
+* script.js is fairly monolithic and has a lot of re-used code among
+  the widgets. Rethink the way that widgets are built to refactor
+  shared code and possibly split it out to multiple files. Consider
+  writing widgets as jquery plugins?
+
+* Add support for other kinds of tasks (e.g. data-only discs and video
+  DVDs as well as encoder tasks). This will involve script.js
+  discriminating based on "type" which widgets to apply to each task.
+
+* Consider using a PHP dependency injection framework. 
+
+* Consider using traits to allow the composition of Entities and Tasks
+  from combinations of data session and audio session and video
+  session.
+
+* Consider a "Task" entity to hold task-manager specific information
+  like UUID.
+
+* Entities are partitioned based on which classes/processes own the
+  data rather than which data is logically related (e.g. CDDB and
+  MusicBrainz each have some data in DiscId and some data in
+  RipAudioMeta). Consider whether this is correct.
+
+* rip_audio_ajax.php is monolithic. Consider delegation to classes
+  rather than wall of code. A more formal REST approach might also be
+  nice.
+
+* For mysterious reasons I always have to use shift-reload TWICE to
+  get the main web UI to talk to task-status.php correctly. Why would
+  that be?
+
+
