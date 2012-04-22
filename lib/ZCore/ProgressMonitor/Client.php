@@ -2,6 +2,7 @@
 
 namespace ZCore\ProgressMonitor;
 use ZCore\ProgressMonitor;
+use ZCore\MemcachedSingleton;
 use DbusSignal;
 use Dbus;
 use Memcached;
@@ -10,8 +11,7 @@ class Client {
   static public function run($callback) {
     $d = new Dbus(Dbus::BUS_SYSTEM);
     $d->addWatch('us.zarfmouse.ZRipTools.ProgressMonitor', 'ProgressSignal');
-    $memcached = new Memcached();
-    $memcached->addServer('localhost', 11211);
+    $memcached = MemcachedSingleton::get();
     self::task_list($memcached, $callback);
     $flag = true;
     do {

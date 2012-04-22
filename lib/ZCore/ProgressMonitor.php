@@ -15,8 +15,7 @@ class ProgressMonitor {
   public function __construct() {
     $this->lastUpdate = microtime(true);
     $this->dbus = new Dbus( Dbus::BUS_SYSTEM);
-    $this->memcached = new Memcached();
-    $this->memcached->addServer('localhost', 11211);
+    $this->memcached = MemcachedSingleton::get();
   }
 
   public function init($id) {
@@ -62,6 +61,17 @@ class ProgressMonitor {
 
   public function update($id, $percent, $message, $type) {
     $old = $this->memcached->get($id);
+    if(is_array($old) && array_key_exists('percent', $old)) {
+      $old_percent = $old['percent'];
+    } else {
+      $old_percent = 0;
+    }
+    if(is_array($old) && array_key_exists('message', $old)) {
+      $old_message = $old['message'];
+    } else {
+      $old_message = '';
+    }
+
     $signal = false;
     $percent = round($percent, 1);
     if($percent > 100) 
@@ -70,8 +80,8 @@ class ProgressMonitor {
       $percent = 0;
     if( ($percent == 100 ||
 	 $percent == 0 ||
-	 abs($percent - $old['percent']) >= 1 ||
-	 $old['message'] != $message) &&
+	 abs($percent - $old_percent) >= 1 ||
+	 $old_message != $message) &&
 	(microtime(true) - $this->lastUpdate) > self::UPDATE_INTERVAL) {
       $signal = true;
       $this->lastUpdate = microtime(true);
