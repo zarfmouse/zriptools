@@ -20,6 +20,7 @@ class TaskManager {
   public function run(Task $task) {
     $uuid = $task->getUUID();
     PersistentObject::getObjectManager()->getConnection()->close();
+    MemcachedSingleton::disconnect();
     $pid = pcntl_fork();
     if($pid == -1) {
       die('could not fork');

@@ -12,5 +12,8 @@ class MemcachedSingleton {
     }
     return self::$memcached;
   }
+  public static function disconnect() {
+    self::$memcached = null;
+  }
 }
   
