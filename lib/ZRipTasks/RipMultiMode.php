@@ -33,14 +33,14 @@ class RipMultiMode extends RipAudio {
     $log = $this->entity->getLog();
     $mnt = preg_replace('/dev/', 'mnt', $dev);
     system("/bin/umount $dev >/dev/null 2>&1");
-    if((!$this->success) || (!file_exists($log)) || (!file_exists($path))) {
+    if((!$this->success) || (!file_exists($log)) || (!file_exists($dest))) {
 	if(file_exists($dest)) {
 	  system("chmod -R u+w $dest");
 	  system("rm -rf $dest/*");
 	}
 	unlink($log);
     }
-    system("eject $dev");
+    system("eject $dev 2>/dev/null");
   }
 
   public function run() {
