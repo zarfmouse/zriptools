@@ -6,6 +6,7 @@ use Doctrine\Common\Persistence\PersistentObject;
 class TaskManager {
   private $progressMonitor;
   private $pids;
+  private $memcached;
 
   public function __construct() {
     $this->pids = array();
@@ -29,12 +30,17 @@ class TaskManager {
       // child
       // The child shouldn't run our reaper. 
       pcntl_signal(SIGCHLD, SIG_DFL);
+      $memcached = MemcachedSingleton::get();
       $progressMonitor = $this->progressMonitor;
       $progressMonitor->init($uuid);
-      $task->registerProgressListener(function($p, $s) use ($uuid, $progressMonitor) { 
+      $task->registerProgressListener(function($p, $s) use ($uuid, $progressMonitor, $task, $memcached) { 
 	  $progressMonitor->update($uuid, $p, $s, 'RipAudio');
+	  if($memcached->get("KILL-$uuid")) {
+	    $task->stop();
+	  }
 	});
       $task->run();
+      $memcached->delete("KILL-$uuid");
       $progressMonitor->remove($uuid);
       exit;
     }

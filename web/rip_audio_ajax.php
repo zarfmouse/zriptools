@@ -5,11 +5,12 @@ require_once __DIR__."/../lib/doctrine-init.php";
 ini_set("display_errors", 1);
 use Doctrine\Common\Persistence\PersistentObject;
 use ZRipEntities\RipAudioMeta;
+use ZCore\MemcachedSingleton;
 
 $entityManager = PersistentObject::getObjectManager();
 #$entityManager->getConfiguration()->setSQLLogger(new \Doctrine\DBAL\Logging\EchoSQLLogger());
 
-$actions = ['cddb', 'note', 'musicbrainz', 'barcode', 'slot', 'resolve'];
+$actions = ['cddb', 'note', 'musicbrainz', 'barcode', 'slot', 'resolve', 'kill'];
 
 $method = array_key_exists('method', $_REQUEST) ? $_REQUEST['method'] : $_SERVER['REQUEST_METHOD'];
 if(!in_array($method, ['GET', 'POST'])) {
@@ -130,6 +131,15 @@ if($action == 'resolve') {
   }
   $retval['resolved'] = $ripAudio->getResolved();
   print json_encode($retval);
+}
+
+if($action == 'kill') {
+  $retval = [];
+  if($method == 'POST' & $_REQUEST['kill']) {
+    $memcached = MemcachedSingleton::get();
+    $memcached->set("KILL-".$ripAudio->getUuid(), 1);
+  }
+  print json_encode(array('kill' => 'requested'));
 }
 
 

@@ -247,43 +247,64 @@ $.extend(BarcodeWidget.prototype, TextWidget.prototype, {
 var RipAudio = function(id) {this.init(id);};
 $.extend(RipAudio.prototype, {
     element: undefined,
+    stopping: false,
     init: function(id) {
+	var task = this;
 	this.element = $('<li class="task"><div class="cell key">'+id+'</div><div class="cell type">RipAudio</div><div class="cell meta"></div><div class="cell progress_container"><div class="message"></div><div class="progress"></div></div><div class="trigger_container"><div class="trigger"></div></div></li>');
 	new SlotWidget(this);
 	new BarcodeWidget(this);
 	new CDDBWidget(this);
 	new MusicbrainzWidget(this);
 	new NoteWidget(this);
+	this.element.find(".trigger_container").
+	    one('click', 
+		'.trigger.stop', 
+		function(ev) {
+		    ev.stopImmediatePropagation();
+		    if(confirm("Really abort this rip?")) {
+			task.element.find(".trigger_container .trigger").removeClass('delete stop wait');
+			task.element.find(".trigger_container .trigger").addClass('wait');
+			task.stopping = true;
+			$.ajax({
+			    url: 'rip_audio_ajax.php/kill/'+task.getId(),
+			    type: 'POST',
+			    dataType: 'json',
+			    data: {kill: 1},
+			});
+		    }
+		});
+	this.element.find(".trigger_container").
+	    on('click', 
+	       '.trigger.delete', 
+	       function(ev) {
+		   task.element.find(".trigger_container .trigger").removeClass('delete stop wait');
+		   task.element.find(".trigger_container .trigger").addClass('wait');
+		   $.ajax({
+		       url: 'rip_audio_ajax.php/resolve/'+task.getId(),
+		       type: 'POST',
+		       dataType: 'json',
+		       data: {resolve: 1},
+		       success: function(data) {
+			   RipAudio.remove(task.getId());
+		       }
+		   });
+	       });
     },
     getId: function() {
 	return this.element.find('.key').html();
     },
     setActive: function(active) {
+	var task = this;
 	if(active) {
 	    this.element.addClass('active');
-	    this.element.find(".trigger_container .trigger").removeClass('delete stop wait');
-	    this.element.find(".trigger_container .trigger").addClass('stop');
+	    if(!this.stopping) {
+		this.element.find(".trigger_container .trigger").removeClass('delete stop wait');
+		this.element.find(".trigger_container .trigger").addClass('stop');
+	    }
 	} else {
 	    this.element.removeClass('active');
 	    this.element.find(".trigger_container .trigger").removeClass('delete stop wait');
 	    this.element.find(".trigger_container .trigger").addClass('delete');
-	    var task = this;
-	    this.element.find(".trigger_container").
-		on('click', 
-		   '.trigger.delete', 
-		   function(ev) {
-		       task.element.find(".trigger_container .trigger").removeClass('delete stop wait');
-		       task.element.find(".trigger_container .trigger").addClass('wait');
-		       $.ajax({
-			   url: 'rip_audio_ajax.php/resolve/'+task.getId(),
-			   type: 'POST',
-			   dataType: 'json',
-			   data: {resolve: 1},
-			   success: function(data) {
-			       RipAudio.remove(task.getId());
-			   }
-		       });
-		   });
 	}
     },
     setMessage: function(message) {

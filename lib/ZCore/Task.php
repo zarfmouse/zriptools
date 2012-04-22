@@ -17,6 +17,9 @@ abstract class Task {
     return $this->uuid;
   }
 
+  abstract public function stop();
+  abstract public function run();
+
   final protected function setProgress($percent, $status=null) {
     foreach($this->listeners as $listener) {
       call_user_func($listener, $percent, $status);

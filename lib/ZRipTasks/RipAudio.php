@@ -10,6 +10,8 @@ use ZRipEntities\RipAudioPass;
 
 class RipAudio extends Task {
   private $entity;
+  private $pid;
+  private $stopped = false;
 
   private static function tmp($path) {
     return "$path.tmp";
@@ -31,7 +33,7 @@ class RipAudio extends Task {
     print "Ripping $dev to $path.\n";
     $pcm = "$path/$uuid.pcm";
     $toc = "$path/$uuid.toc";
-    $log = "$path/$uuid.log.txt";
+    $log = "$path/$uuid.log";
     if(is_null($dev) || 
        ! (preg_match('(^/dev/.*)', $dev) && file_exists($dev))) 
       throw new InvalidDeviceException($dev);
@@ -75,7 +77,15 @@ class RipAudio extends Task {
       unlink($toc);
     if(file_exists($log))
       unlink($log);
-    $handle = popen("/usr/bin/cdrdao read-cd --paranoia-mode $paranoia --device $dev --datafile $pcm $toc 2>&1", 'r');
+    $descriptorspec = [
+		       0 => array("pipe", "r"),
+		       1 => array("pipe", "w"),
+		       ];
+    $resource = proc_open("/usr/bin/cdrdao read-cd --paranoia-mode $paranoia --device $dev --datafile $pcm $toc 2>&1", $descriptorspec, $pipes, dirname($log));
+    $proc_info = proc_get_status($resource);
+    $this->pid = $proc_info['pid'];
+    
+    $handle = $pipes[1];
     $buffer = '';
     $log_data = '';
     while(($char = fgetc($handle)) !== FALSE) {
@@ -107,12 +117,12 @@ class RipAudio extends Task {
 	$buffer .= $char;
       }
     }
-    $status = pclose($handle);
-    if($status != 0) {
-      exit;
-    }
+    $status = proc_close($resource);
     if(isset($log) and !empty($log_data)) {
       file_put_contents($log, $log_data);
+    }
+    if($status != 0) {
+      exit;
     }
     $this->setProgress(100, "Pass #$pass {$rate}x 00m00s");
 
@@ -143,10 +153,6 @@ class RipAudio extends Task {
       $this->entity->setSuccess(false);
       if(file_exists($pcm))
 	unlink($pcm);
-      if(file_exists($toc))
-	unlink($toc);
-      if(file_exists($log))
-	unlink($log);
     }
     $this->entity->save();
     if(file_exists("$pcm.2"))
@@ -154,6 +160,24 @@ class RipAudio extends Task {
     if(file_exists("$toc.2"))
       unlink("$toc.2");
     system("eject $dev");
+  }
+
+  public function stop() {
+    if($this->stopped)
+      return;
+    $ppid = $this->pid;
+    $uuid = $this->getUUID();
+    if($ppid > 0) {
+      $pids = `ps -ef| awk '$3 == '${ppid}' { print $2 }'`;
+      foreach(explode("\n", $pids) as $pid) {
+	trim($pid);
+	if($pid > 0) {
+	  print "Killing $pid for $uuid.\n";
+	  posix_kill($pid, SIGTERM);
+	}
+      }
+      $this->stopped = true;
+    }
   }
 
   public function run() {
@@ -165,13 +189,13 @@ class RipAudio extends Task {
     register_shutdown_function(array($this, 'cleanup'));
     
     
-    $md51 = $this->rip($pcm, $toc, $log, 0, 1);
-    $md52 = $this->rip("$pcm.2", "$toc.2", null, 0, 2);
+    $md51 = $this->rip($pcm, $toc, "$log.1", 0, 1);
+    $md52 = $this->rip("$pcm.2", "$toc.2", "$log.2", 0, 2);
     $size = filesize($pcm);
     if($md51 != $md52) {
       $diff_bytes = intval(shell_exec("/usr/bin/cmp -b -l $pcm $pcm.2 | wc -l"));
       $error = sprintf("% 2.4f", ($diff_bytes / $size) * 100);
-      $md51 = $this->rip($pcm, $toc, $log, 3, 3);
+      $md51 = $this->rip($pcm, $toc, "$log.3", 3, 3);
     } else {
       $diff_bytes = 0;
     }
