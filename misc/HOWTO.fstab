@@ -1,0 +1,7 @@
+/dev/sr0 /mnt/sr0 iso9660 ro,noauto,user,noexec 0 0 
+/dev/sr1 /mnt/sr1 iso9660 ro,noauto,user,noexec 0 0
+/dev/sr2 /mnt/sr2 iso9660 ro,noauto,user,noexec 0 0
+/dev/sr3 /mnt/sr3 iso9660 ro,noauto,user,noexec 0 0
+/dev/sr4 /mnt/sr4 iso9660 ro,noauto,user,noexec 0 0
+/dev/sr5 /mnt/sr5 iso9660 ro,noauto,user,noexec 0 0
+/dev/sr6 /mnt/sr6 iso9660 ro,noauto,user,noexec 0 0

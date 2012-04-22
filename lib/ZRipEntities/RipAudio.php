@@ -24,6 +24,11 @@ class RipAudio extends ActiveRecord {
   protected $device;
 
   /** 
+   * @OneToOne(targetEntity="RipDataSession", inversedBy="ripAudio", cascade={"all"})
+   **/
+  protected $ripDataSession;
+
+  /** 
    * @OneToOne(targetEntity="DiscId", inversedBy="ripAudio", cascade={"all"})
    **/
   protected $discId;

@@ -12,6 +12,7 @@ use ZCore\TaskManager;
 use ZCore\ProgressMonitor;
 use ZRipUtils\MediaMonitor;
 use ZRipTasks\RipAudio;
+use ZRipTasks\RipMultiMode;
 
 define('LIBRARY_ROOT', '/home/zach/CDLibrary');
 
@@ -23,10 +24,8 @@ $monitor = new MediaMonitor;
 $monitor->registerAudioCDAction(function($device) use ($task_manager) {
     $task_manager->run(new RipAudio($device));
   });
-$monitor->registerMultiModeCDAction(function($device) {
-    $dev = $device->getDeviceFile();
-    print "$dev - MultiMode CD.\n";
-    system("eject $dev");
+$monitor->registerMultiModeCDAction(function($device) use ($task_manager) {
+    $task_manager->run(new RipMultiMode($device));
   });
 $monitor->registerDataCDAction(function($device) {
     $dev = $device->getDeviceFile();

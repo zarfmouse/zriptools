@@ -10,8 +10,7 @@ use ZRipEntities\RipAudioPass;
 
 class RipAudio extends Task {
   private $entity;
-  private $pid;
-  private $stopped = false;
+  private $path;
 
   private static function tmp($path) {
     return "$path.tmp";
@@ -22,6 +21,14 @@ class RipAudio extends Task {
     return ($m*60*75) + ($s*75) + $f;
   }
 
+  protected function getPath() {
+    return $this->path;
+  }
+
+  protected function getRipAudio() {
+    return $this->entity;
+  }
+
   public function __construct(Device $device) {
     parent::__construct();
     $dev = $device->getDeviceFile();
@@ -30,6 +37,7 @@ class RipAudio extends Task {
     if(!file_exists($path)) {
       mkdir($path, 0755, true);
     }
+    $this->path = $path;
     print "Ripping $dev to $path.\n";
     $pcm = "$path/$uuid.pcm";
     $toc = "$path/$uuid.toc";
@@ -160,24 +168,6 @@ class RipAudio extends Task {
     if(file_exists("$toc.2"))
       unlink("$toc.2");
     system("eject $dev");
-  }
-
-  public function stop() {
-    if($this->stopped)
-      return;
-    $ppid = $this->pid;
-    $uuid = $this->getUUID();
-    if($ppid > 0) {
-      $pids = `ps -ef| awk '$3 == '${ppid}' { print $2 }'`;
-      foreach(explode("\n", $pids) as $pid) {
-	trim($pid);
-	if($pid > 0) {
-	  print "Killing $pid for $uuid.\n";
-	  posix_kill($pid, SIGTERM);
-	}
-      }
-      $this->stopped = true;
-    }
   }
 
   public function run() {
