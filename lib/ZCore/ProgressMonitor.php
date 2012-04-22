@@ -40,8 +40,7 @@ class ProgressMonitor {
     do {
       $ids = $this->memcached->get(self::ID_FIELD, null, $cas);
       if($ids === false) {
-	var_dump($this->memcached->getResultCode());
-	sleep(1);
+	sleep(rand(1,3));
       } else {
 	if ($this->memcached->getResultCode() == Memcached::RES_NOTFOUND) {
 	  $ids = array();
@@ -50,7 +49,6 @@ class ProgressMonitor {
 	  if(array_key_exists($id, $ids)) {
 	    unset($ids[$id]);
 	  }
-	  var_dump($ids);
 	  $this->memcached->cas($cas, self::ID_FIELD, $ids);
 	}   
       } 
