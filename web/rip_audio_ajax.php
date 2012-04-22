@@ -5,7 +5,7 @@ require_once __DIR__."/../lib/doctrine-init.php";
 ini_set("display_errors", 1);
 use Doctrine\Common\Persistence\PersistentObject;
 use ZRipEntities\RipAudioMeta;
-use ZCore\MemcachedSingleton;
+use ZCore\MemcacheSingleton;
 
 date_default_timezone_set('US/Central');
 
@@ -138,8 +138,7 @@ if($action == 'resolve') {
 if($action == 'kill') {
   $retval = [];
   if($method == 'POST' & $_REQUEST['kill']) {
-    $memcached = MemcachedSingleton::get();
-    $memcached->set("KILL-".$ripAudio->getUuid(), 1);
+    MemcacheSingleton::get()->set("KILL-".$ripAudio->getUuid(), 1);
   }
   print json_encode(array('kill' => 'requested'));
 }
@@ -147,5 +146,3 @@ if($action == 'kill') {
 if($action == 'dev') {
   print json_encode(array('dev' => $ripAudio->getDevice()->getDeviceFile()));
 }
-
-

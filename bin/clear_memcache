@@ -1,0 +1,8 @@
+#!/usr/bin/php
+<?php
+
+use ZCore\MemcacheSingleton;
+
+require_once __DIR__."/../lib/autoload-init.php";
+MemcacheSingleton::get()->flush();
+

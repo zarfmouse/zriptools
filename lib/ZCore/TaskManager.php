@@ -6,7 +6,6 @@ use Doctrine\Common\Persistence\PersistentObject;
 class TaskManager {
   private $progressMonitor;
   private $pids;
-  private $memcached;
 
   public function __construct() {
     $this->pids = array();
@@ -19,8 +18,9 @@ class TaskManager {
 
   public function run(Task $task) {
     $uuid = $task->getUUID();
+    $this->progressMonitor->init($uuid);
     PersistentObject::getObjectManager()->getConnection()->close();
-    MemcachedSingleton::disconnect();
+    MemcacheSingleton::disconnect();
     $pid = pcntl_fork();
     if($pid == -1) {
       die('could not fork');
@@ -31,21 +31,18 @@ class TaskManager {
       // child
       // The child shouldn't run our reaper. 
       pcntl_signal(SIGCHLD, SIG_DFL);
-      $memcached = MemcachedSingleton::get();
+      $memcache = MemcacheSingleton::get();
       $progressMonitor = $this->progressMonitor;
-      $progressMonitor->init($uuid);
-      $task->registerProgressListener(function($p, $s) use ($uuid, $progressMonitor, $task, $memcached) { 
+      $task->registerProgressListener(function($p, $s) use ($uuid, $progressMonitor, $task, $memcache) { 
 	  $progressMonitor->update($uuid, $p, $s, 'RipAudio');
-	  if($memcached->get("KILL-$uuid")) {
+	  if($memcache->get("KILL-$uuid")) {
 	    $task->stop();
 	  }
 	});
       $task->run();
-      $memcached->delete("KILL-$uuid");
-      $progressMonitor->remove($uuid);
+      $memcache->delete("KILL-$uuid");
       exit;
     }
-
   }
 
   public function reaper() {
@@ -57,10 +54,10 @@ class TaskManager {
 	if($status != 0) {
 	  print "$uuid exited with status $status.\n";
 	}
+	MemcacheSingleton::get()->delete("KILL-$uuid");
 	unset($this->pids[$uuid]);
 	$this->progressMonitor->remove($uuid);
       }
     }
   }
-
 }
