@@ -9,7 +9,7 @@ class ProgressMonitor {
   private $lastUpdate = 0;
   private $dbus;
   private $memcached;
-  const UPDATE_INTERVAL = 0.5;
+  const UPDATE_INTERVAL = .5;
   const ID_FIELD = 'ProgressMonitorIds';
   
   public function __construct() {
@@ -40,10 +40,21 @@ class ProgressMonitor {
   public function remove($id) {
     do {
       $ids = $this->memcached->get(self::ID_FIELD, null, $cas);
-      if ($this->memcached->getResultCode() != Memcached::RES_NOTFOUND) {
-	unset($ids[$id]);
-	$this->memcached->cas($cas, self::ID_FIELD, $ids);
-      }   
+      if($ids === false) {
+	var_dump($this->memcached->getResultCode());
+	sleep(1);
+      } else {
+	if ($this->memcached->getResultCode() == Memcached::RES_NOTFOUND) {
+	  $ids = array();
+	  $this->memcached->set(self::ID_FIELD, $ids);
+	} else { 
+	  if(array_key_exists($id, $ids)) {
+	    unset($ids[$id]);
+	  }
+	  var_dump($ids);
+	  $this->memcached->cas($cas, self::ID_FIELD, $ids);
+	}   
+      } 
     } while ($this->memcached->getResultCode() != Memcached::RES_SUCCESS);
     $this->memcached->delete($id);
     $this->signal();
@@ -57,11 +68,11 @@ class ProgressMonitor {
       $percent = 100;
     if($percent < 0)
       $percent = 0;
-    if($percent == 100 ||
-       $percent == 0 ||
-       abs($percent - $old['percent']) >= 1 ||
-       ($old['message'] != $message &&
-	(microtime(true) - $this->lastUpdate) > self::UPDATE_INTERVAL)) {
+    if( ($percent == 100 ||
+	 $percent == 0 ||
+	 abs($percent - $old['percent']) >= 1 ||
+	 $old['message'] != $message) &&
+	(microtime(true) - $this->lastUpdate) > self::UPDATE_INTERVAL) {
       $signal = true;
       $this->lastUpdate = microtime(true);
     }
