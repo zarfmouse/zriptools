@@ -18,15 +18,15 @@ $.extend(EventReader.prototype, {
 	var xhr = new XMLHttpRequest();
 	var outer = this;
 	xhr.onreadystatechange = function() {
-	    if(this.readyState != 3 && this.readyState != 4)
-		return;
-	    var newStart = this.responseText.indexOf(outer.boundary, start);
-	    if(newStart > 0) {
-		var length = newStart - start;
-		var data = 
-		    $.parseJSON(this.responseText.substr(start, length));
-		start = newStart+1;
-		outer.eventHandler(data);
+	    if(this.readyState == 3 || this.readyState == 4) {
+		var newStart = this.responseText.indexOf(outer.boundary, start);
+		if(newStart > 0) {
+		    var length = newStart - start;
+		    var data = 
+			$.parseJSON(this.responseText.substr(start, length));
+		    start = newStart+1;
+		    outer.eventHandler(data);
+		}
 	    }
 	    if(this.readyState == 4 && !outer.stopped) {
 		outer.run();
@@ -132,6 +132,7 @@ $.extend(SelectWidget.prototype, SavableWidget.prototype, {
 			widget.acceptTrigger();
 			widget.trigger.one('click', change_function);
 			widget.wrapper.prepend(select);
+			select.focus();
 		    }
 		}
 	    });
@@ -211,6 +212,7 @@ $.extend(TextWidget.prototype, SavableWidget.prototype, {
 			widget.acceptTrigger();
 			widget.trigger.one('click', change_function);
 			widget.wrapper.prepend(input);
+			input.focus();
 		    }
 		}
 	    });
@@ -246,7 +248,7 @@ var RipAudio = function(id) {this.init(id);};
 $.extend(RipAudio.prototype, {
     element: undefined,
     init: function(id) {
-	this.element = $('<li class="task"><div class="cell key">'+id+'</div><div class="cell type">RipAudio</div><div class="cell meta"></div><div class="cell progress_container"><div class="message"></div><div class="progress"></div></div><div class="trigger_container"><div class="trigger delete"></div></div></li>');
+	this.element = $('<li class="task"><div class="cell key">'+id+'</div><div class="cell type">RipAudio</div><div class="cell meta"></div><div class="cell progress_container"><div class="message"></div><div class="progress"></div></div><div class="trigger_container"><div class="trigger"></div></div></li>');
 	new SlotWidget(this);
 	new BarcodeWidget(this);
 	new CDDBWidget(this);
@@ -259,8 +261,29 @@ $.extend(RipAudio.prototype, {
     setActive: function(active) {
 	if(active) {
 	    this.element.addClass('active');
+	    this.element.find(".trigger_container .trigger").removeClass('delete stop wait');
+	    this.element.find(".trigger_container .trigger").addClass('stop');
 	} else {
 	    this.element.removeClass('active');
+	    this.element.find(".trigger_container .trigger").removeClass('delete stop wait');
+	    this.element.find(".trigger_container .trigger").addClass('delete');
+	    var task = this;
+	    this.element.find(".trigger_container").
+		on('click', 
+		   '.trigger.delete', 
+		   function(ev) {
+		       task.element.find(".trigger_container .trigger").removeClass('delete stop wait');
+		       task.element.find(".trigger_container .trigger").addClass('wait');
+		       $.ajax({
+			   url: 'rip_audio_ajax.php/resolve/'+task.getId(),
+			   type: 'POST',
+			   dataType: 'json',
+			   data: {resolve: 1},
+			   success: function(data) {
+			       RipAudio.remove(task.getId());
+			   }
+		       });
+		   });
 	}
     },
     setMessage: function(message) {
@@ -292,6 +315,11 @@ $.extend(RipAudio, {
 	    this.cache[id] = retval;
 	} 
 	return this.find(id);
+    },
+    remove: function(id) {
+	var task = this.find(id);
+	task.element.remove();
+	delete this.cache[id];
     },
     update_from_events: function(data) {
 	var saw = {};

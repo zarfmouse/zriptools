@@ -94,6 +94,11 @@
     background-size: 24px 24px;   
 }
 
+.trigger.stop {
+    background-image: url('images/process-stop.png');
+    background-size: 24px 24px;   
+}
+
 .cddb {
     clear: left;
     margin-top: 0.5em;

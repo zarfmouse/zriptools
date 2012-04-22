@@ -9,7 +9,7 @@ use ZRipEntities\RipAudioMeta;
 $entityManager = PersistentObject::getObjectManager();
 #$entityManager->getConfiguration()->setSQLLogger(new \Doctrine\DBAL\Logging\EchoSQLLogger());
 
-$actions = ['cddb', 'note', 'musicbrainz', 'barcode', 'slot'];
+$actions = ['cddb', 'note', 'musicbrainz', 'barcode', 'slot', 'resolve'];
 
 $method = array_key_exists('method', $_REQUEST) ? $_REQUEST['method'] : $_SERVER['REQUEST_METHOD'];
 if(!in_array($method, ['GET', 'POST'])) {
@@ -119,6 +119,16 @@ if($action == 'slot') {
     $ripAudio->save();
   }
   $retval['chosen'] = $meta->getSlot(); 
+  print json_encode($retval);
+}
+
+if($action == 'resolve') {
+  $retval = [];
+  if($method == 'POST' & $_REQUEST['resolve']) {
+    $ripAudio->setResolved(true);
+    $ripAudio->save();
+  }
+  $retval['resolved'] = $ripAudio->getResolved();
   print json_encode($retval);
 }
 
