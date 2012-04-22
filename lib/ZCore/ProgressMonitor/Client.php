@@ -16,6 +16,9 @@ class Client {
     $flag = true;
     do {
       $s = $d->waitLoop( 2000 );
+      if(connection_aborted() || (connection_status() != 0)) {
+	$flag=false;
+      }
       $flag = self::task_list($memcached, $callback);
     } while ($flag);
   }
@@ -26,7 +29,9 @@ class Client {
     if(is_array($ids)) {
       foreach(array_keys($ids) as $id) {
 	$val = $memcached->get($id);
-	$monitors[$id] = $val;
+	if(is_array($val)) {
+	  $monitors[$id] = $val;
+	}
       }
     }
     return call_user_func($callback, $monitors);
