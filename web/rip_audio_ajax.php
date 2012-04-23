@@ -2,7 +2,7 @@
 
 require_once __DIR__."/../lib/autoload-init.php";
 require_once __DIR__."/../lib/doctrine-init.php";
-ini_set("display_errors", 1);
+//ini_set("display_errors", 1);
 use Doctrine\Common\Persistence\PersistentObject;
 use ZRipEntities\RipAudioMeta;
 use ZCore\MemcacheSingleton;
