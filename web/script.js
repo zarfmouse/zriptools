@@ -384,6 +384,16 @@ $(document).ready(function() {
 	events.setEventHandler(RipAudio.update_from_events); 
 	events.run();
     });
+    (function get_df() {
+	$.getJSON('df.php', function(data) {
+	    $("#df .progress").progressbar({value: data});
+	    $("#df .message").html("Disk Usage: "+data+"%");
+	});
+	setTimeout(get_df, 5*60*1000);
+    })();
 });
+
+
+
 
 

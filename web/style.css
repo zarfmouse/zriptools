@@ -1,3 +1,29 @@
+#df {
+    position: relative;
+    width: 100%;
+    height: 2em;
+}
+
+#df .message {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 10;
+    width: 100%;
+    line-height: 2em;
+    vertical-align: middle;
+    text-align: center;
+}
+
+#df .progress {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    z-index: 5;
+    font-size: 1em !important;
+}
+
 #tasks {
     list-style-type: none;
     margin: 0;
