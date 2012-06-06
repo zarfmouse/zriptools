@@ -417,6 +417,13 @@ $.extend(EncodeFlac.prototype, Task.prototype, {
     init: function(id) {
 	Task.prototype.init.call(this, id);
 	this.element.find(".type").html('EncodeFlac');
+    },
+    setActive: function(active) {
+	if(active === false) {
+	    this.resolve();
+	} else {
+	    Task.prototype.setActive.call(this, active);
+	}
     }
 });
 $.extend(EncodeFlac, Task, {});
