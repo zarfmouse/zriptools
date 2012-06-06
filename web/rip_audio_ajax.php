@@ -12,7 +12,7 @@ date_default_timezone_set('US/Central');
 $entityManager = PersistentObject::getObjectManager();
 #$entityManager->getConfiguration()->setSQLLogger(new \Doctrine\DBAL\Logging\EchoSQLLogger());
 
-$actions = ['cddb', 'note', 'musicbrainz', 'barcode', 'slot', 'resolve', 'kill', 'dev'];
+$actions = ['cddb', 'note', 'musicbrainz', 'barcode', 'slot', 'resolve', 'dev'];
 
 $method = array_key_exists('method', $_REQUEST) ? $_REQUEST['method'] : $_SERVER['REQUEST_METHOD'];
 if(!in_array($method, ['GET', 'POST'])) {
@@ -133,14 +133,6 @@ if($action == 'resolve') {
   }
   $retval['resolved'] = $ripAudio->getResolved();
   print json_encode($retval);
-}
-
-if($action == 'kill') {
-  $retval = [];
-  if($method == 'POST' & $_REQUEST['kill']) {
-    MemcacheSingleton::get()->set("KILL-".$ripAudio->getUuid(), 1);
-  }
-  print json_encode(array('kill' => 'requested'));
 }
 
 if($action == 'dev') {

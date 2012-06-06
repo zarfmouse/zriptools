@@ -38,7 +38,7 @@ class TaskManager {
       $memcache = MemcacheSingleton::get();
       $progressMonitor = $this->progressMonitor;
       $task->registerProgressListener(function($p, $s) use ($uuid, $progressMonitor, $task, $memcache) { 
-	  $progressMonitor->update($uuid, $p, $s, 'RipAudio');
+	  $progressMonitor->update($uuid, $p, $s, preg_replace('/^.*\\\\/', '', get_class($task)));
 	  if($memcache->get("KILL-$uuid")) {
 	    $task->stop();
 	  }
