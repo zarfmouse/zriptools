@@ -16,6 +16,10 @@ class TaskManager {
     $this->progressMonitor = $progressMonitor;
   }
 
+  public function numTasks() {
+    return count($this->pids);
+  }
+
   public function run(Task $task) {
     $uuid = $task->getUUID();
     $this->progressMonitor->init($uuid);
