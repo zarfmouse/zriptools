@@ -32,17 +32,25 @@ class BackgroundRunner {
     pcntl_signal(SIGINT, array($this,"sigint"));
     while($this->flag) {
       foreach($this->tasks as $pair) {
-	// TODO: don't run if we already have 4 tasks running. Instead
-	// wait for a task to end.
-	$data = $pair['data']();
-	if(isset($data)) {
-	  $task = $pair['task']($data);
-	  // TODO: run the task via taskManager rather than syncronously.
-	  $task->run();
-	  // TODO: don't exit after running only one task.
-	  exit();
+	if($this->flag) {
+	  // TODO: don't run if we already have 4 tasks running. Instead
+	  // wait for a task to end.
+	  $data = $pair['data']();
+	  if(isset($data)) {
+	    $task = $pair['task']($data);
+	    $this->taskManager->run($task);
+	    // TODO: don't exit after running only one task.
+	    $this->flag = false;
+	  }
 	}
       }
+    }
+    $this->flag = true;
+    while($this->flag) {
+      print "Waiting for death of children.\n";
+      if($this->taskManager->numTasks() == 0)
+	$this->flag = false;
+      sleep(1);
     }
     print "Done.\n";
   }
