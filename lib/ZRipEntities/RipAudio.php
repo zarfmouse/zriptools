@@ -44,9 +44,9 @@ class RipAudio extends ActiveRecord {
   protected $ripAudioPasses;
 
   /** 
-   * @OneToOne(targetEntity="FlacEncode", mappedBy="ripAudio", cascade={"all"})
+   * @OneToOne(targetEntity="EncodeFlac", mappedBy="ripAudio", cascade={"all"})
    **/
-  protected $flacEncode;
+  protected $encodeFlac;
 
   /** 
    * @Column(type="string") 
