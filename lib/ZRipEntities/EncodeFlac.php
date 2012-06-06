@@ -34,6 +34,11 @@ class EncodeFlac extends ActiveRecord {
   protected $cue;
 
   /** 
+   * @Column(type="string") 
+   **/
+  protected $log;
+
+  /** 
    * @Column(type="boolean") 
    * True when the process exits.
    **/  

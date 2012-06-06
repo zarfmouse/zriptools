@@ -33,6 +33,7 @@ $runner->registerTask(
 			$qb->from('ZRipEntities\RipAudio', 'r');
 			$qb->leftJoin('r.encodeFlac', 'f');
 			$qb->where('f.id IS NULL');
+			$qb->andWhere('r.success = 1');
 			$qb->setMaxResults(1);
 			$query = $qb->getQuery();
 			return $query->getSingleResult();
