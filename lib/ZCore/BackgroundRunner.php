@@ -33,17 +33,16 @@ class BackgroundRunner {
     while($this->flag) {
       foreach($this->tasks as $pair) {
 	if($this->flag) {
-	  // TODO: don't run if we already have 4 tasks running. Instead
-	  // wait for a task to end.
-	  $data = $pair['data']();
-	  if(isset($data)) {
-	    $task = $pair['task']($data);
-	    $this->taskManager->run($task);
-	    // TODO: don't exit after running only one task.
-	    $this->flag = false;
+	  if($this->taskManager->numTasks() < self::$maxTasks) {
+	    $data = $pair['data']();
+	    if(isset($data)) {
+	      $task = $pair['task']($data);
+	      $this->taskManager->run($task);
+	    }
 	  }
 	}
       }
+      sleep(1);
     }
     $this->flag = true;
     while($this->flag) {
