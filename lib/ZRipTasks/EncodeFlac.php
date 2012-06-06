@@ -42,14 +42,11 @@ class EncodeFlac extends Task {
 
     $this->entity->setComplete(true);
     if((!$this->entity->getSuccess()) || (!file_exists($cue)) || (!file_exists($flac))) {
-      print "Failed.\n";
       $this->entity->setSuccess(false);
       if(file_exists($flac))
 	unlink($flac);
       if(file_exists($cue))
 	unlink($cue);
-    } else {
-      print "Success.\n";
     }
     $this->entity->save();
   }
@@ -57,7 +54,6 @@ class EncodeFlac extends Task {
   private function createCue() {
     $cue = $this->entity->getCue();
     $toc = $this->entity->getRipAudio()->getToc();
-    print "Converting $toc.\n";
     if(!file_exists($toc))
       throw new TocNotFoundException($toc);
     if(file_exists($cue))
@@ -108,7 +104,6 @@ class EncodeFlac extends Task {
 	  }
 	  if($percent != $previous_percent) {
 	    $this->setProgress($percent, $time_remaining);
-	    print "$percent $time_remaining\n";
 	    $previous_percent = $percent;
 	  }
 	} else if(preg_match('/Verify OK, wrote ([0-9]+) bytes, ratio=([0-9\.]+)/', $buffer, $matches)) {
@@ -148,6 +143,9 @@ class EncodeFlac extends Task {
     $this->entity->setEndTime(new DateTime('now'));
     $this->entity->save();
 
+    // If we got this far we can safely ditch the PCM file.
+    $pcm = $this->entity->getRipAudio()->getPcm();
+    unlink($pcm);
   }
   
   public function run() {
