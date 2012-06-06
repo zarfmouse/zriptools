@@ -34,8 +34,13 @@ class BackgroundRunner {
       foreach($this->tasks as $pair) {
 	if($this->flag) {
 	  if($this->taskManager->numTasks() < self::$maxTasks) {
-	    $data = $pair['data']();
-	    if(isset($data)) {
+	    try {
+	      $data = $pair['data']();
+	      $data_ok = true;
+	    } catch (Exception $e) {
+	      $data_ok = false;
+	    }
+	    if($data_ok && isset($data)) {
 	      $task = $pair['task']($data);
 	      $this->taskManager->run($task);
 	    }
