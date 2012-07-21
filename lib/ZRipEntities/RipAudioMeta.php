@@ -39,6 +39,11 @@ class RipAudioMeta extends ActiveRecord {
    **/
   protected $cddbPick;
 
+  /** 
+   * @Column(type="text", nullable=true) 
+   **/
+  protected $cddbData;
+
   /**
    * @OneToOne(targetEntity="RipAudio", mappedBy="meta", cascade={"all"})
    */
