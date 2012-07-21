@@ -18,6 +18,7 @@ use ZCore\BackgroundRunner;
 use ZRipEntities\RipAudio as RipAudioEntity;
 use ZRipEntities\EncodeFlac as EncodeFlacEntity;
 use ZRipTasks\EncodeFlac;
+use ZRipTasks\CddbRead;
 
 $task_manager = new TaskManager;
 $progress_monitor = new ProgressMonitor;
@@ -40,6 +41,25 @@ $runner->registerTask(
 		      }, 
 		      function(RipAudioEntity $data) {
 			return new EncodeFlac($data);
+		      });
+
+$runner->registerTask(
+		      function() {
+			$em = PersistentObject::getObjectManager();
+			$qb = $em->createQueryBuilder();
+			$qb->select('r');
+			$qb->from('ZRipEntities\RipAudio', 'r');
+			$qb->join('r.meta', 'm');
+			$qb->where('m.cddbPick IS NOT NULL');
+			$qb->andWhere("NOT m.cddbPick LIKE 'No match for disc ID%'");
+			$qb->andWhere("m.cddbPick != ''");
+			$qb->andWhere("m.cddbData IS NULL");
+			$qb->setMaxResults(1);
+			$query = $qb->getQuery();
+			return $query->getSingleResult();
+		      }, 
+		      function(RipAudioEntity $data) {
+			return new CddbRead($data);
 		      });
 $runner->run();
 

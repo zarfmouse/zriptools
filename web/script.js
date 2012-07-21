@@ -428,6 +428,22 @@ $.extend(EncodeFlac.prototype, Task.prototype, {
 });
 $.extend(EncodeFlac, Task, {});
 
+var CddbRead = function(id) {this.init(id);};
+$.extend(CddbRead.prototype, Task.prototype, {
+    init: function(id) {
+	Task.prototype.init.call(this, id);
+	this.element.find(".type").html('CddbRead');
+    },
+    setActive: function(active) {
+	if(active === false) {
+	    this.resolve();
+	} else {
+	    Task.prototype.setActive.call(this, active);
+	}
+    }
+});
+$.extend(CddbRead, Task, {});
+
 $(document).ready(function() {
     $.getJSON('unresolved-tasks.php', function(data) {
 	Task.update_from_events(data);
