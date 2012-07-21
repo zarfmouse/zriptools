@@ -35,9 +35,8 @@ class CddbRead extends Task {
     $cddb->setPick($pick);
     $this->entity->setCddbData($cddb->getData());
     $this->entity->save();
-    $this->setProgress(50, $pick);
-    sleep(1);
     $this->setProgress(100, $pick);
+    sleep(1);
   }
 }
   
