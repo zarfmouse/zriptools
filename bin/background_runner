@@ -19,6 +19,7 @@ use ZRipEntities\RipAudio as RipAudioEntity;
 use ZRipEntities\EncodeFlac as EncodeFlacEntity;
 use ZRipTasks\EncodeFlac;
 use ZRipTasks\CddbRead;
+use ZRipTasks\MusicbrainzRead;
 
 $task_manager = new TaskManager;
 $progress_monitor = new ProgressMonitor;
@@ -59,7 +60,27 @@ $runner->registerTask(
 			return $query->getSingleResult();
 		      }, 
 		      function(RipAudioEntity $data) {
+			sleep(1);
 			return new CddbRead($data);
+		      });
+
+$runner->registerTask(
+		      function() {
+			$em = PersistentObject::getObjectManager();
+			$qb = $em->createQueryBuilder();
+			$qb->select('r');
+			$qb->from('ZRipEntities\RipAudio', 'r');
+			$qb->join('r.meta', 'm');
+			$qb->where('m.musicbrainzRelease IS NOT NULL');
+			$qb->andWhere("m.musicbrainzRelease != ''");
+			$qb->andWhere("m.musicbrainzData IS NULL");
+			$qb->setMaxResults(1);
+			$query = $qb->getQuery();
+			return $query->getSingleResult();
+		      }, 
+		      function(RipAudioEntity $data) {
+			sleep(1);
+			return new MusicbrainzRead($data);
 		      });
 $runner->run();
 
