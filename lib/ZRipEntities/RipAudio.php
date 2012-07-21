@@ -96,5 +96,10 @@ class RipAudio extends ActiveRecord {
    **/  
   protected $resolved;
 
+  /**
+   * @OneToMany(targetEntity="Track", mappedBy="ripAudio", cascade={"all"})
+   */
+  protected $tracks;
+
   
 }
